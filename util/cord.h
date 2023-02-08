@@ -9,11 +9,11 @@ namespace tank::util
 {
     class Cord {
     public:
-        Cord(double x = 0, double y = 0);
-        Cord(const Cord&);
+        explicit Cord(double x = 0, double y = 0);
+        Cord(const Cord&) = default;
         Cord& operator=(const Cord&);
-        double x();
-        double y();
+        [[nodiscard]] double x() const;
+        [[nodiscard]] double y() const;
     private:
         double _x, _y;
     };

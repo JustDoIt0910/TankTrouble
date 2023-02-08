@@ -22,6 +22,9 @@ namespace tank
         void draw(const Cairo::RefPtr<Cairo::Context>&) override;
         void move() override;
         ~Tank() override = default;
+
+        const static int TANK_WIDTH = 20;
+        const static int TANK_HEIGHT = 25;
     private:
         util::Cord topLeft, topRight,
         bottomLeft, bottomRight;

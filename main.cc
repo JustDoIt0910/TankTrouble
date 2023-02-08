@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
     tank::Field f(&ctl);
     win.add(f);
     f.show();
+    //ctl.start();
 
     return app->run(win);
     return 0;

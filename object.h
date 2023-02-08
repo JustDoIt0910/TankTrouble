@@ -28,7 +28,8 @@ namespace tank
         virtual void draw(const Cairo::RefPtr<Cairo::Context>&) = 0;
         virtual void move() = 0;
         virtual ~Object() = default;
-    private:
+
+    protected:
         util::Cord pos;
         double angle;
         ObjMovingStep step;

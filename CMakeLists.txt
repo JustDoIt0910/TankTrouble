@@ -10,4 +10,4 @@ include_directories(${GTKMM_INCLUDE_DIRS})
 link_directories(${GTKMM_LIBRARY_DIRS})
 link_libraries(${GTKMM_LIBRARIES})
 
-add_executable(TankTrouble main.cc tank.cc util/cord.cc util/cord.h object.h field.cc field.h controller.cc controller.h bullet.cc bullet.h)
+add_executable(TankTrouble main.cc tank.cc util/cord.cc field.cc controller.cc bullet.cc util/math.cc)
