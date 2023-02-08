@@ -21,6 +21,7 @@ namespace tank
         Tank(const util::Cord&, double, const Color&);
         void draw(const Cairo::RefPtr<Cairo::Context>&) override;
         void move() override;
+        ~Tank() override = default;
     private:
         util::Cord topLeft, topRight,
         bottomLeft, bottomRight;

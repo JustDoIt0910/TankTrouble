@@ -3,6 +3,19 @@
 //
 
 #include "field.h"
+#include <glibmm/main.h>
+
+tank::Field::Field(tank::Controller* c): ctl(c)
+{
+    Glib::signal_timeout().connect(
+            sigc::mem_fun(*this, &tank::Field::on_timeout),
+            300);
+}
+
+bool tank::Field::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
+{
+    return true;
+}
 
 bool tank::Field::on_timeout()
 {

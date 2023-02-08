@@ -5,10 +5,12 @@
 #ifndef TANK_TROUBLE_CONTROLLER_H
 #define TANK_TROUBLE_CONTROLLER_H
 
+namespace tank {
 
-class Controller {
+    class Controller {
 
-};
+    };
 
+}
 
 #endif //TANK_TROUBLE_CONTROLLER_H

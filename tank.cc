@@ -10,12 +10,12 @@ tank::Tank::Tank(const util::Cord& p, double angle, const Color& c):
 
 }
 
-void draw(const Cairo::RefPtr<Cairo::Context>&)
+void tank::Tank::draw(const Cairo::RefPtr<Cairo::Context>&)
 {
 
 }
 
-void move()
+void tank::Tank::move()
 {
 
 }

@@ -27,7 +27,7 @@ namespace tank
             pos(p), angle(_angle), step(s), color(c) {}
         virtual void draw(const Cairo::RefPtr<Cairo::Context>&) = 0;
         virtual void move() = 0;
-        virtual ~Object() = 0;
+        virtual ~Object() = default;
     private:
         util::Cord pos;
         double angle;
