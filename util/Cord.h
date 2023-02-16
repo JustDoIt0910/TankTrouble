@@ -5,7 +5,7 @@
 #ifndef TANK_TROUBLE_CORD_H
 #define TANK_TROUBLE_CORD_H
 
-namespace tank::util
+namespace TankTrouble::util
 {
     class Cord {
     public:

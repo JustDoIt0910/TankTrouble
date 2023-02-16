@@ -7,10 +7,15 @@
 #include <memory>
 #include <vector>
 #include <mutex>
-#include "object.h"
-#include "util/cord.h"
+#include <condition_variable>
+#include <thread>
+#include "Object.h"
+#include "util/Cord.h"
+#include "reactor/EventLoop.h"
+#include "Tank.h"
 
-namespace tank {
+namespace TankTrouble
+{
 
     class Controller {
     public:
@@ -21,14 +26,25 @@ namespace tank {
         typedef std::vector<std::vector<util::Cord>> BarrierList;
 
         Controller();
+        ~Controller();
         void start();
         ObjectListPtr getObjects();
+        void dispatchEvent(ev::Event* event);
         BarrierList getBarriers();
 
     private:
+        void run();
         void moveAll();
-        ObjectListPtr objects;
+        void controlEventHandler(ev::Event* event);
+        void fire(Tank* tank);
+
+        ObjectList objects;
+        ObjectListPtr snapshot;
         std::mutex mu;
+        std::condition_variable cv;
+        bool started;
+        std::thread controlThread;
+        ev::reactor::EventLoop* controlLoop;
     };
 
 }

@@ -2,22 +2,23 @@
 // Created by zr on 23-2-8.
 //
 
-#ifndef TANK_TROUBLE_FIELD_H
-#define TANK_TROUBLE_FIELD_H
+#ifndef TANK_TROUBLE_VIEW_H
+#define TANK_TROUBLE_VIEW_H
 #include <gtkmm/drawingarea.h>
-#include "controller.h"
+#include "Controller.h"
 
-namespace tank {
-    class Field : public Gtk::DrawingArea
+namespace TankTrouble
+{
+    class View : public Gtk::DrawingArea
     {
     public:
-        explicit Field(tank::Controller*);
+        explicit View(Controller*);
     private:
         //Override default signal handler:
         bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         bool on_timeout();
-        tank::Controller* ctl;
+        Controller* ctl;
     };
 }
 
-#endif //TANK_TROUBLE_FIELD_H
+#endif //TANK_TROUBLE_VIEW_H
