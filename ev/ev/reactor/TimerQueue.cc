@@ -8,7 +8,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <iostream>
+#include <algorithm>
 
 namespace ev::reactor
 {
@@ -25,7 +25,7 @@ namespace ev::reactor
     struct timespec howMuchTimeFromNow(Timestamp when)
     {
         Timestamp now = Timestamp::now();
-        uint64_t microseconds = when - now;
+        uint64_t microseconds = std::max(static_cast<int64_t>(100), when - now);
         struct timespec ts{};
         ts.tv_sec = static_cast<time_t>(
                 microseconds / Timestamp::microSecondsPerSecond);

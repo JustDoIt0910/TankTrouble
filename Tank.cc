@@ -81,7 +81,7 @@ namespace TankTrouble
 
         cr->set_line_width(7.0);
         cr->move_to(pos.x(), pos.y());
-        util::Cord to = util::polar2Cart(angle, 17, pos);
+        util::Cord to = util::polar2Cart(angle, 16, pos);
         cr->line_to(to.x(), to.y());
         cr->stroke();
         cr->restore();
@@ -118,7 +118,7 @@ namespace TankTrouble
     Shell* Tank::makeShell()
     {
         remainBullets--;
-        util::Cord shellPos = util::polar2Cart(angle, 20, pos);
+        util::Cord shellPos = util::polar2Cart(angle, 18, pos);
         return new Shell(shellPos, angle);
     }
 }

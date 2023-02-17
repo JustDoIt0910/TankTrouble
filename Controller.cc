@@ -8,6 +8,9 @@
 #include "Shell.h"
 #include <thread>
 #include <cassert>
+#include <algorithm>
+#include <iostream>
+#include <unistd.h>
 
 namespace TankTrouble
 {
@@ -36,15 +39,15 @@ namespace TankTrouble
     void Controller::run()
     {
         ev::reactor::EventLoop loop;
-        loop.runEvery(0.05, [this]{this->moveAll();});
-        auto* event = new ControlEvent;
-        loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
         controlLoop = &loop;
         {
             std::unique_lock<std::mutex> lk(mu);
             started = true;
             cv.notify_all();
         }
+        auto* event = new ControlEvent;
+        loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
+        loop.runEvery(0.05, [this]{this->moveAll();});
         loop.loop();
         controlLoop = nullptr;
     }

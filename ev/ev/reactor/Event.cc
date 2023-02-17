@@ -7,7 +7,7 @@
 namespace ev
 {
     Event::Event(const std::string& name, uint16_t type):
-        _name(std::move(name)), _type(type){}
+        _name(name), _type(type){}
 
     std::string Event::name() const {return _name;}
 

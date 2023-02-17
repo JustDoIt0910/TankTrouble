@@ -1,9 +1,13 @@
 //
 // Created by zr on 23-2-8.
 //
-#include "./Math.h"
-#include "../Tank.h"
+#include "Math.h"
+#include "../defs.h"
 #include <cmath>
+#include <numeric>
+#include <random>
+#include <chrono>
+#include <algorithm>
 
 namespace TankTrouble::util
 {
@@ -30,5 +34,36 @@ namespace TankTrouble::util
         bl = Cord(2 * pos.x() - tr.x(), 2 * pos.y() - tr.y());
         br = Cord(2 * pos.x() - tl.x(), 2 * pos.y() - tl.y());
         return {tl, tr, bl, br};
+    }
+
+    std::vector<std::pair<Cord, Cord>> getRandomBlocks(int num)
+    {
+        std::vector<int> v(MAX_BLOCKS_NUM);
+        std::iota(v.begin(), v.end(), 0);
+        unsigned long seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::shuffle(v.begin(), v.end(), std::default_random_engine(seed));
+        std::vector<std::pair<Cord, Cord>> res;
+        for(int i = 0; i < num; i++)
+        {
+            int index = v[i];
+            if(i < (HORIZON_GRID_NUMBER - 1) * VERTICAL_GRID_NUMBER)
+            {
+                //竖直的block
+                int x = index % (HORIZON_GRID_NUMBER - 2) + 1;
+                int y = index / (HORIZON_GRID_NUMBER - 2);
+                Cord start(x, y); Cord end(x, y + 1);
+                res.emplace_back(start, end);
+            }
+            else
+            {
+                //水平的block
+                index -= (HORIZON_GRID_NUMBER - 1) * VERTICAL_GRID_NUMBER;
+                int x = index % HORIZON_GRID_NUMBER;
+                int y = index / HORIZON_GRID_NUMBER + 1;
+                Cord start(x, y); Cord end(x + 1, y);
+                res.emplace_back(start, end);
+            }
+        }
+        return res;
     }
 }

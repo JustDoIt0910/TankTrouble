@@ -31,7 +31,7 @@ namespace ev
 
         bool operator<(const Timestamp& rhs) const;
         bool operator==(const Timestamp& rhs) const;
-        uint64_t operator-(const Timestamp& rhs) const;
+        int64_t operator-(const Timestamp& rhs) const;
 
         const static int microSecondsPerSecond = 1000 * 1000;
 

@@ -30,7 +30,9 @@ namespace ev::reactor
         else
         {
             auto ms = static_cast<int64_t>(interval * Timestamp::microSecondsPerSecond);
-            _expiration.addMicroSeconds(ms);
+            Timestamp newExp = now;
+            newExp.addMicroSeconds(ms);
+            _expiration = newExp;
         }
     }
 }

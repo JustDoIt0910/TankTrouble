@@ -89,7 +89,7 @@ namespace ev
     bool Timestamp::operator==(const Timestamp& rhs) const
     {return _microSecondsSinceEpoch == rhs._microSecondsSinceEpoch;}
 
-    uint64_t Timestamp::operator-(const Timestamp& rhs) const
+    int64_t Timestamp::operator-(const Timestamp& rhs) const
     {return _microSecondsSinceEpoch - rhs._microSecondsSinceEpoch;}
 
     bool _isvalid_tm_field(time_t value, Timestamp::TimeUnit unit)

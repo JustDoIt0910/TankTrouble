@@ -3,6 +3,16 @@ project(TankTrouble)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
+set(TANK_TROUBLE_SRC main.cc
+        Tank.cc
+        Shell.cc
+        Block.cc
+        util/Cord.cc
+        util/Math.cc
+        Window.cc
+        View.cc
+        Controller.cc
+        event/ControlEvent.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)
@@ -15,12 +25,4 @@ include_directories(${GTKMM_INCLUDE_DIRS} ${EV_INCLUDE_DIRS})
 link_directories(${GTKMM_LIBRARY_DIRS} ${EV_LIBRARY_DIRS})
 link_libraries(${GTKMM_LIBRARIES} reactor pthread)
 
-add_executable(TankTrouble main.cc
-        Tank.cc
-        Shell.cc
-        util/Cord.cc
-        util/Math.cc
-        Window.cc
-        View.cc
-        Controller.cc
-        event/ControlEvent.cc)
+add_executable(TankTrouble ${TANK_TROUBLE_SRC})
