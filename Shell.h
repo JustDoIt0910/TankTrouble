@@ -20,6 +20,9 @@ namespace TankTrouble
         void moveToNextPosition() override;
 
         const static int RADIUS = 3;
+
+    private:
+        int ttl;
     };
 }
 

@@ -24,6 +24,7 @@ namespace TankTrouble
         void rotateCW(bool enable);
         void rotateCCW(bool enable);
         ObjType type() override;
+        int id() const;
         [[nodiscard]] int remainShells() const;
         [[nodiscard]] Shell* makeShell();
         ~Tank() override = default;
@@ -35,6 +36,7 @@ namespace TankTrouble
     private:
         void recalculate();
 
+        int _id;
         util::Vec topLeft, topRight,
         bottomLeft, bottomRight;
         int remainBullets;

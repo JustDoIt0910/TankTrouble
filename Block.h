@@ -12,15 +12,24 @@ namespace TankTrouble
     class Block
     {
     public:
-        Block(const util::Vec& start, const util::Vec& end);
+        Block() = default;
+        Block(int id, const util::Vec& start, const util::Vec& end);
         void draw(const Cairo::RefPtr<Cairo::Context>& cr);
         [[nodiscard]] bool isHorizon() const;
+        [[nodiscard]] util::Vec center();
+        [[nodiscard]] int height() const;
+        [[nodiscard]] int width() const;
+        [[nodiscard]] int id() const;
         const static int BLOCK_WIDTH = 4;
 
     private:
-        util::Vec _start, _end;
+        int _id;
+        util::Vec _center;
         util::Vec tl, tr, bl, br;
         bool horizon;
+        util::Vec _start, _end;
+        int _height;
+        int _width;
     };
 }
 

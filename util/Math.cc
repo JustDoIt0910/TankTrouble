@@ -72,10 +72,11 @@ namespace TankTrouble::util
                                   int width, int height, int r)
     {
         Vec v = Vec(circleCenter.x() - rectCenter.x(), circleCenter.y() - rectCenter.y());
-        double d1 = v * vec2;
-        double d2 = v * vec1;
+        double d1 = std::abs(v * vec2);
+        double d2 = std::abs(v * vec1);
         double d3 = sqrt(pow(static_cast<double>(width) / 2, 2) + pow(static_cast<double>(height) / 2, 2));
         double d = v.norm();
+        printf("(%f, %f, %f)\n", d1, d2, d);
         if(d1 < static_cast<double>(width) / 2 + r && d2 < static_cast<double>(height) / 2 + r && d < d3 + r)
             return true;
         return false;

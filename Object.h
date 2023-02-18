@@ -7,16 +7,15 @@
 #include "util/Vec.h"
 #include <cairomm/context.h>
 #include <vector>
-#include <mutex>
 
-namespace TankTrouble
-{
 #define MOVING_STATIONARY 1
 #define MOVING_FORWARD 2
 #define MOVING_BACKWARD 4
 #define ROTATING_CW 8
 #define ROTATING_CCW 16
 
+namespace TankTrouble
+{
     enum ObjMovingStep {TANK_MOVING_STEP = 3, SHELL_MOVING_STEP = 6};
     enum ObjType {OBJ_TANK, OBJ_SHELL};
     typedef uint8_t MovingStatus;
@@ -41,12 +40,9 @@ namespace TankTrouble
         virtual PosInfo getNextPosition(int movingStep, int rotationStep) = 0;
         virtual void moveToNextPosition() = 0;
         void resetNextPosition(const PosInfo& next);
+        PosInfo getCurrentPosition();
         virtual ObjType type() = 0;
         virtual ~Object() = default;
-
-        static int getId();
-        static int globalId;
-        static std::mutex mu;
 
     protected:
         PosInfo posInfo;

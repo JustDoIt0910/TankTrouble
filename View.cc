@@ -33,7 +33,7 @@ namespace TankTrouble
         drawOutline(cr);
         Controller::BlockList* blocks = ctl->getBlocks();
         for(auto& block: *blocks)
-            block.draw(cr);
+            block.second.draw(cr);
 
         Controller::ObjectListPtr snapshot = ctl->getObjects();
         for(auto &obj: *snapshot)

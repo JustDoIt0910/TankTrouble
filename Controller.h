@@ -7,24 +7,34 @@
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <condition_variable>
 #include <thread>
+#include <unordered_map>
+#include <condition_variable>
+#include "reactor/EventLoop.h"
 #include "Object.h"
 #include "util/Vec.h"
-#include "reactor/EventLoop.h"
 #include "Tank.h"
 #include "Block.h"
+#include "defs.h"
+
+#define UPWARDS             0
+#define UPWARDS_LEFT        1
+#define LEFT                2
+#define DOWNWARDS_LEFT      3
+#define DOWNWARDS           4
+#define DOWNWARDS_RIGHT     5
+#define RIGHT               6
+#define UPWARDS_RIGHT       7
 
 namespace TankTrouble
 {
-
     class Controller {
     public:
         typedef std::unique_ptr<Object> ObjectPtr;
         typedef std::vector<ObjectPtr> ObjectList;
         typedef std::shared_ptr<ObjectList> ObjectListPtr;
 
-        typedef std::vector<Block> BlockList;
+        typedef std::unordered_map<int, Block> BlockList;
 
         Controller();
         ~Controller();
@@ -38,6 +48,9 @@ namespace TankTrouble
         void moveAll();
         void controlEventHandler(ev::Event* event);
         void fire(Tank* tank);
+        int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
+
+        void initBlocks(int num);
 
         ObjectList objects;
         ObjectListPtr snapshot;
@@ -47,8 +60,8 @@ namespace TankTrouble
         bool started;
         std::thread controlThread;
         ev::reactor::EventLoop* controlLoop;
+        std::vector<int> possibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
     };
-
 }
 
 #endif //TANK_TROUBLE_CONTROLLER_H

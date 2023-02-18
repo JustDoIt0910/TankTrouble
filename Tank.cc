@@ -111,6 +111,8 @@ namespace TankTrouble
 
     ObjType Tank::type() {return OBJ_TANK;}
 
+    int Tank::id() const {return _id;}
+
     int Tank::remainShells() const {return remainBullets;}
 
     Shell* Tank::makeShell()
@@ -120,4 +122,3 @@ namespace TankTrouble
         return new Shell(shellPos, posInfo.angle);
     }
 }
-
