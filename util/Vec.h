@@ -7,11 +7,14 @@
 
 namespace TankTrouble::util
 {
-    class Cord {
+    class Vec {
     public:
-        explicit Cord(double x = 0, double y = 0);
-        Cord(const Cord&) = default;
-        Cord& operator=(const Cord&);
+        explicit Vec(double x = 0, double y = 0);
+        Vec(const Vec&) = default;
+        Vec& operator=(const Vec&) = default;
+        double operator*(const Vec& c) const;
+        [[nodiscard]] double norm() const;
+        void swap(Vec& c);
         [[nodiscard]] double x() const;
         [[nodiscard]] double y() const;
     private:

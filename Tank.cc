@@ -3,12 +3,13 @@
 //
 
 #include "Tank.h"
+#include "View.h"
 #include "Shell.h"
 #include "util/Math.h"
 
 namespace TankTrouble
 {
-    Tank::Tank(const util::Cord& p, double angle, const Color& c):
+    Tank::Tank(const util::Vec& p, double angle, const Color& c):
         Object(p, angle, c),
         remainBullets(5)
     {
@@ -17,7 +18,8 @@ namespace TankTrouble
 
     void Tank::recalculate()
     {
-        auto corners = util::getCornerCord(pos, angle, Tank::TANK_WIDTH, Tank::TANK_HEIGHT);
+        auto corners = util::getCornerVec(posInfo.pos, posInfo.angle,
+                                          Tank::TANK_WIDTH, Tank::TANK_HEIGHT);
         topLeft = corners[0]; topRight = corners[1]; bottomLeft = corners[2]; bottomRight = corners[3];
     }
 
@@ -66,49 +68,45 @@ namespace TankTrouble
     void Tank::draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
         cr->save();
-        cr->set_source_rgb(color[0], color[1], color[2]);
-        cr->set_line_width(1.0);
-        cr->move_to(topLeft.x(), topLeft.y());
-        cr->line_to(topRight.x(), topRight.y());
-        cr->line_to(bottomRight.x(), bottomRight.y());
-        cr->line_to(bottomLeft.x(), bottomLeft.y());
+        View::drawRect(cr, color, topLeft, topRight, bottomLeft, bottomRight);
         cr->close_path();
         cr->fill();
 
         cr->set_source_rgb(color[0] - 0.2, color[1], color[2]);
-        cr->arc(pos.x(), pos.y(), 6, 0.0, 2 * M_PI);
+        cr->arc(posInfo.pos.x(), posInfo.pos.y(), 7, 0.0, 2 * M_PI);
         cr->fill();
 
         cr->set_line_width(7.0);
-        cr->move_to(pos.x(), pos.y());
-        util::Cord to = util::polar2Cart(angle, 16, pos);
+        cr->move_to(posInfo.pos.x(), posInfo.pos.y());
+        util::Vec to = util::polar2Cart(posInfo.angle, 15, posInfo.pos);
         cr->line_to(to.x(), to.y());
         cr->stroke();
         cr->restore();
     }
 
-    void Tank::move()
+    Object::PosInfo Tank::getNextPosition(int movingStep, int rotationStep)
     {
+        if(movingStep == 0)
+            movingStep = TANK_MOVING_STEP;
+        if(rotationStep == 0)
+            rotationStep = ROTATING_STEP;
+        Object::PosInfo next = posInfo;
         if(movingStatus & ROTATING_CW)
-        {
-            angle = static_cast<int>(360 + angle - ROTATING_STEP) % 360;
-            recalculate();
-        }
+            next.angle = static_cast<int>(360 + posInfo.angle - rotationStep) % 360;
         if(movingStatus & ROTATING_CCW)
-        {
-            angle = static_cast<int>(angle + ROTATING_STEP) % 360;
-            recalculate();
-        }
+            next.angle = static_cast<int>(posInfo.angle + rotationStep) % 360;
         if(movingStatus & MOVING_FORWARD)
-        {
-            pos = util::polar2Cart(angle, TANK_MOVING_STEP, pos);
-            recalculate();
-        }
+            next.pos = util::polar2Cart(next.angle, movingStep, posInfo.pos);
         if(movingStatus & MOVING_BACKWARD)
-        {
-            pos = util::polar2Cart(angle + 180, TANK_MOVING_STEP, pos);
-            recalculate();
-        }
+            next.pos = util::polar2Cart(next.angle + 180, movingStep, posInfo.pos);
+        nextPos = next;
+        return next;
+    }
+
+    void Tank::moveToNextPosition()
+    {
+        posInfo = nextPos;
+        recalculate();
     }
 
     ObjType Tank::type() {return OBJ_TANK;}
@@ -118,8 +116,8 @@ namespace TankTrouble
     Shell* Tank::makeShell()
     {
         remainBullets--;
-        util::Cord shellPos = util::polar2Cart(angle, 18, pos);
-        return new Shell(shellPos, angle);
+        util::Vec shellPos = util::polar2Cart(posInfo.angle, 18, posInfo.pos);
+        return new Shell(shellPos, posInfo.angle);
     }
 }
 

@@ -13,6 +13,10 @@ namespace TankTrouble
     {
     public:
         explicit View(Controller*);
+        static void drawRect(const Cairo::RefPtr<Cairo::Context>& cr,
+                             Color color,
+                             util::Vec tl, util::Vec tr, util::Vec bl, util::Vec br);
+
     private:
         //Override default signal handler:
         bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;

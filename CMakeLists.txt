@@ -7,12 +7,13 @@ set(TANK_TROUBLE_SRC main.cc
         Tank.cc
         Shell.cc
         Block.cc
-        util/Cord.cc
+        util/Vec.cc
         util/Math.cc
         Window.cc
         View.cc
         Controller.cc
-        event/ControlEvent.cc)
+        Smith.cc
+        event/ControlEvent.cc Object.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)

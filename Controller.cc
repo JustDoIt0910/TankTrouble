@@ -2,15 +2,14 @@
 // Created by zr on 23-2-8.
 //
 
+#include "defs.h"
 #include "Controller.h"
+#include "util/Math.h"
 #include "event/ControlEvent.h"
 #include "Tank.h"
 #include "Shell.h"
 #include <thread>
 #include <cassert>
-#include <algorithm>
-#include <iostream>
-#include <unistd.h>
 
 namespace TankTrouble
 {
@@ -19,7 +18,14 @@ namespace TankTrouble
         controlLoop(nullptr),
         snapshot(new ObjectList)
     {
-        objects.push_back(std::unique_ptr<Object>(new Tank(util::Cord(100, 100), 90.0, RED)));
+        objects.push_back(std::unique_ptr<Object>(new Tank(util::Vec(100, 100), 90.0, RED)));
+        auto startEnds = util::getRandomBlocks(45);
+        for(const auto& p: startEnds)
+        {
+            util::Vec startVec(MAP_GRID_TO_REAL(p.first.x(), p.first.y()));
+            util::Vec endVec(MAP_GRID_TO_REAL(p.second.x(), p.second.y()));
+            blocks.emplace_back(startVec, endVec);
+        }
     }
 
     Controller::~Controller()
@@ -60,10 +66,7 @@ namespace TankTrouble
         return snapshot;
     }
 
-    Controller::BarrierList Controller::getBarriers()
-    {
-
-    }
+    Controller::BlockList* Controller::getBlocks() {return &blocks;}
 
     void Controller::controlEventHandler(ev::Event *event)
     {
@@ -93,7 +96,14 @@ namespace TankTrouble
     void Controller::moveAll()
     {
         for(auto& obj: objects)
-            obj->move();
+        {
+            obj->getNextPosition(0, 0);
+            if(obj->type() == OBJ_SHELL)
+            {
+
+            }
+            obj->moveToNextPosition();
+        }
         std::lock_guard<std::mutex> lg(mu);
         if(!snapshot.unique())
             snapshot.reset(new ObjectList);

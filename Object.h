@@ -4,9 +4,10 @@
 
 #ifndef TANK_TROUBLE_OBJECT_H
 #define TANK_TROUBLE_OBJECT_H
-#include "util/Cord.h"
+#include "util/Vec.h"
 #include <cairomm/context.h>
 #include <vector>
+#include <mutex>
 
 namespace TankTrouble
 {
@@ -16,7 +17,7 @@ namespace TankTrouble
 #define ROTATING_CW 8
 #define ROTATING_CCW 16
 
-    enum ObjMovingStep {TANK_MOVING_STEP = 4, SHELL_MOVING_STEP = 6};
+    enum ObjMovingStep {TANK_MOVING_STEP = 3, SHELL_MOVING_STEP = 6};
     enum ObjType {OBJ_TANK, OBJ_SHELL};
     typedef uint8_t MovingStatus;
     typedef std::vector<double> Color;
@@ -26,16 +27,30 @@ namespace TankTrouble
 
     class Object {
     public:
-        Object(const util::Cord& p, double _angle, const Color& c):
-            pos(p), angle(_angle), movingStatus(MOVING_STATIONARY), color(c) {}
-        virtual void draw(const Cairo::RefPtr<Cairo::Context>&) = 0;
-        virtual void move() = 0;
+        struct PosInfo
+        {
+            PosInfo(const util::Vec& p, double a): pos(p), angle(a){}
+            PosInfo& operator=(const PosInfo& info) = default;
+            PosInfo(): PosInfo(util::Vec(0.0, 0.0), 0){}
+            util::Vec pos;
+            double angle;
+        };
+
+        Object(const util::Vec& pos, double angle, const Color& c);
+        virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr) = 0;
+        virtual PosInfo getNextPosition(int movingStep, int rotationStep) = 0;
+        virtual void moveToNextPosition() = 0;
+        void resetNextPosition(const PosInfo& next);
         virtual ObjType type() = 0;
         virtual ~Object() = default;
 
+        static int getId();
+        static int globalId;
+        static std::mutex mu;
+
     protected:
-        util::Cord pos;
-        double angle;
+        PosInfo posInfo;
+        PosInfo nextPos;
         MovingStatus movingStatus;
         Color color;
     };

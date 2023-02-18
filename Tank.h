@@ -4,7 +4,7 @@
 
 #ifndef TANK_TROUBLE_TANK_H
 #define TANK_TROUBLE_TANK_H
-#include "util/Cord.h"
+#include "util/Vec.h"
 #include "Object.h"
 
 namespace TankTrouble
@@ -13,10 +13,11 @@ namespace TankTrouble
 
     class Tank : public Object {
     public:
-        Tank(const util::Cord&, double, const Color& color);
+        Tank(const util::Vec&, double, const Color& color);
         Tank(const Tank& t) = default;
         void draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
-        void move() override;
+        PosInfo getNextPosition(int movingStep, int rotationStep) override;
+        void moveToNextPosition() override;
         void stop();
         void forward(bool enable);
         void backward(bool enable);
@@ -29,12 +30,12 @@ namespace TankTrouble
 
         const static int TANK_WIDTH = 20;
         const static int TANK_HEIGHT = 25;
-        const static int ROTATING_STEP = 15;
+        const static int ROTATING_STEP = 12;
 
     private:
         void recalculate();
 
-        util::Cord topLeft, topRight,
+        util::Vec topLeft, topRight,
         bottomLeft, bottomRight;
         int remainBullets;
     };

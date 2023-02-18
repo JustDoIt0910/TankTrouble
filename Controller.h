@@ -10,9 +10,10 @@
 #include <condition_variable>
 #include <thread>
 #include "Object.h"
-#include "util/Cord.h"
+#include "util/Vec.h"
 #include "reactor/EventLoop.h"
 #include "Tank.h"
+#include "Block.h"
 
 namespace TankTrouble
 {
@@ -23,14 +24,14 @@ namespace TankTrouble
         typedef std::vector<ObjectPtr> ObjectList;
         typedef std::shared_ptr<ObjectList> ObjectListPtr;
 
-        typedef std::vector<std::vector<util::Cord>> BarrierList;
+        typedef std::vector<Block> BlockList;
 
         Controller();
         ~Controller();
         void start();
         ObjectListPtr getObjects();
         void dispatchEvent(ev::Event* event);
-        BarrierList getBarriers();
+        BlockList* getBlocks();
 
     private:
         void run();
@@ -40,6 +41,7 @@ namespace TankTrouble
 
         ObjectList objects;
         ObjectListPtr snapshot;
+        BlockList blocks;
         std::mutex mu;
         std::condition_variable cv;
         bool started;
