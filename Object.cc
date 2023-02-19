@@ -5,10 +5,15 @@
 
 namespace TankTrouble
 {
-    Object::Object(const util::Vec& pos, double angle, const Color& c):
-            posInfo(pos, angle), movingStatus(MOVING_STATIONARY), color(c) {}
+    Object::Object(const util::Vec& pos, double angle, const Color& c, int id):
+            posInfo(pos, angle),
+            movingStatus(MOVING_STATIONARY),
+            color(c),
+            _id(id){}
 
     void Object::resetNextPosition(const PosInfo& next) {nextPos = next;}
 
     Object::PosInfo Object::getCurrentPosition() {return posInfo;}
+
+    int Object::id() const {return _id;}
 }

@@ -21,7 +21,8 @@ namespace TankTrouble
         controlLoop(nullptr),
         snapshot(new ObjectList)
     {
-        objects.push_back(std::unique_ptr<Object>(new Tank(util::Vec(100, 100), 90.0, RED)));
+        std::unique_ptr<Object> tank(new Tank(util::Vec(100, 100), 90.0, RED));
+        objects[tank->id()] = std::move(tank);
         initBlocks(45);
     }
 
@@ -38,7 +39,7 @@ namespace TankTrouble
         std::unique_lock<std::mutex> lk(mu);
         cv.wait(lk, [this] () -> bool {return this->started;});
     }
-int tid;
+
     void Controller::run()
     {
         ev::reactor::EventLoop loop;
@@ -50,7 +51,7 @@ int tid;
         }
         auto* event = new ControlEvent;
         loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
-        tid = loop.runEvery(0.05, [this]{this->moveAll();});
+        loop.runEvery(0.05, [this]{this->moveAll();});
         loop.loop();
         controlLoop = nullptr;
     }
@@ -68,7 +69,7 @@ int tid;
     void Controller::controlEventHandler(ev::Event *event)
     {
         auto* ce = dynamic_cast<ControlEvent*>(event);
-        Tank* me = dynamic_cast<Tank*>(objects[0].get());
+        Tank* me = dynamic_cast<Tank*>(objects[1].get());
         switch (ce->operation())
         {
             case ControlEvent::Forward: me->forward(true); break;
@@ -87,40 +88,65 @@ int tid;
     {
         if(tank->remainShells() == 0)
             return;
-        objects.emplace_back(std::unique_ptr<Object>(tank->makeShell()));
+        std::unique_ptr<Object> shell(tank->makeShell());
+        objects[shell->id()] = std::move(shell);
     }
 
     void Controller::moveAll()
     {
         ev::Timestamp before = ev::Timestamp::now();
-        for(auto& obj: objects)
+        deletedObjs.clear();
+        for(auto& entry: objects)
         {
+            std::unique_ptr<Object>& obj = entry.second;
             Object::PosInfo next = obj->getNextPosition(0, 0);
             Object::PosInfo cur = obj->getCurrentPosition();
             if(obj->type() == OBJ_SHELL)
             {
-                if(int id = checkShellCollision(cur, next))
-                    if(id)
+                int id = checkShellCollision(cur, next);
+                if(id == -1)
+                {
+                    next.angle = util::angleFlipY(next.angle);
+                    obj->resetNextPosition(next);
+                }
+                else if(id == -2)
+                {
+                    next.angle = util::angleFlipX(next.angle);
+                    obj->resetNextPosition(next);
+                }
+                else if(id > 10)
+                {
+                    std::cout << "collision block" << id << std::endl;
+                    obj->resetNextPosition(getBouncedPosition(cur, next, id));
+                }
+                if(id)
+                {
+                    auto* shell = dynamic_cast<Shell*>(obj.get());
+                    if(shell->countDown() <= 0)
                     {
-                        std::cout << "collision " << id << std::endl;
-                        controlLoop->cancelTimer(tid);
+                        deletedObjs.push_back(obj->id());
+                        dynamic_cast<Tank*>(objects[shell->tankId()].get())->getRemainShell();
                     }
+                }
             }
             obj->moveToNextPosition();
         }
+        for(int id: deletedObjs)
+            objects.erase(id);
         std::lock_guard<std::mutex> lg(mu);
         if(!snapshot.unique())
             snapshot.reset(new ObjectList);
         assert(snapshot.unique());
         snapshot->clear();
-        for(auto& obj: objects)
+        for(auto& entry: objects)
         {
+            std::unique_ptr<Object>& obj = entry.second;
             if(obj->type() == OBJ_TANK)
-                snapshot->emplace_back(std::unique_ptr<Object>(
-                        new Tank(*dynamic_cast<Tank*>(obj.get()))));
+                (*snapshot)[obj->id()] = std::unique_ptr<Object>(
+                        new Tank(*dynamic_cast<Tank*>(obj.get())));
             else
-                snapshot->emplace_back(std::unique_ptr<Object>(
-                        new Shell(*dynamic_cast<Shell*>(obj.get()))));
+                (*snapshot)[obj->id()] = std::unique_ptr<Object>(
+                        new Shell(*dynamic_cast<Shell*>(obj.get())));
         }
         ev::Timestamp after = ev::Timestamp::now();
         //std::cout << after - before << std::endl;
@@ -128,6 +154,10 @@ int tid;
 
     int Controller::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
+        if(nextPos.pos.x() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.x() > WINDOW_WIDTH - 1 - Block::BLOCK_WIDTH)
+            return -1;
+        if(nextPos.pos.y() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.y() > WINDOW_HEIGHT - 1 - Block::BLOCK_WIDTH)
+            return -2;
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
         static double degreeRange[] = {0.0, 90.0, 180.0, 270.0, 360.0};
         static int directions[] = {RIGHT, UPWARDS_RIGHT, UPWARDS, UPWARDS_LEFT,
@@ -146,10 +176,8 @@ int tid;
                 break;
             }
         }
-        //printf("{x = %f, y = %f, gx = %d, gy = %d, dir = %d}\n",curPos.pos.x(), curPos.pos.y(), static_cast<int>(grid.x()), static_cast<int>(grid.y()), dir);
         for(int blockId: possibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())][dir])
         {
-            std::cout << blockId << ": ";
             Block block = blocks[blockId];
             util::Vec v1 = block.isHorizon() ? util::Vec(1, 0) : util::Vec(0, 1);
             util::Vec v2 = block.isHorizon() ? util::Vec(0, 1) : util::Vec(1, 0);
@@ -159,8 +187,26 @@ int tid;
                 return blockId;
             }
         }
-        std::cout << std::endl;
         return 0;
+    }
+
+    Object::PosInfo Controller::getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId)
+    {
+        Block block = blocks[blockId];
+        Object::PosInfo bounced = next;
+//        util::Vec p1 = util::polar2Cart(cur.angle, 10, next.pos);
+//        util::Vec p2 = util::polar2Cart(cur.angle + 180, 10, cur.pos);
+        for(int i = 0; i < 4; i++)
+        {
+            std::pair<util::Vec, util::Vec> b = block.border(i);
+            if(!util::intersectionOfSegments(cur.pos, next.pos, b.first, b.second, &bounced.pos))
+                continue;
+            if(i < 2)
+                bounced.angle = util::angleFlipX(cur.angle);
+            else
+                bounced.angle = util::angleFlipY(cur.angle);
+        }
+        return bounced;
     }
 
     void Controller::initBlocks(int num)

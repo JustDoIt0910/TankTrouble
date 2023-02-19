@@ -5,6 +5,7 @@
 #ifndef TANK_TROUBLE_BLOCK_H
 #define TANK_TROUBLE_BLOCK_H
 #include "util/Vec.h"
+#include <utility>
 #include <cairomm/context.h>
 
 namespace TankTrouble
@@ -20,6 +21,7 @@ namespace TankTrouble
         [[nodiscard]] int height() const;
         [[nodiscard]] int width() const;
         [[nodiscard]] int id() const;
+        [[nodiscard]] std::pair<util::Vec, util::Vec> border(int n) const;
         const static int BLOCK_WIDTH = 4;
 
     private:
@@ -30,6 +32,8 @@ namespace TankTrouble
         util::Vec _start, _end;
         int _height;
         int _width;
+        //计算碰撞位置的包围盒(顺序上下左右)
+        std::pair<util::Vec, util::Vec> _border[4];
     };
 }
 

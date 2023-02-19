@@ -31,7 +31,7 @@ namespace TankTrouble
     class Controller {
     public:
         typedef std::unique_ptr<Object> ObjectPtr;
-        typedef std::vector<ObjectPtr> ObjectList;
+        typedef std::unordered_map<int, ObjectPtr> ObjectList;
         typedef std::shared_ptr<ObjectList> ObjectListPtr;
 
         typedef std::unordered_map<int, Block> BlockList;
@@ -49,11 +49,13 @@ namespace TankTrouble
         void controlEventHandler(ev::Event* event);
         void fire(Tank* tank);
         int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
+        Object::PosInfo getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId);
 
         void initBlocks(int num);
 
         ObjectList objects;
         ObjectListPtr snapshot;
+        std::vector<int> deletedObjs;
         BlockList blocks;
         std::mutex mu;
         std::condition_variable cv;

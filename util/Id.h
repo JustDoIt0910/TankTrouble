@@ -4,7 +4,6 @@
 
 #ifndef TANK_TROUBLE_ID_H
 #define TANK_TROUBLE_ID_H
-#include <mutex>
 
 namespace TankTrouble::util
 {
@@ -13,12 +12,12 @@ namespace TankTrouble::util
     public:
         static int getTankId();
         static int getBlockId();
+        static int getShellId();
 
     private:
         static int globalTankId;
-        static std::mutex tankIdMu;
         static int globalBlockId;
-        static std::mutex blockIdMu;
+        static int globalShellId;
     };
 }
 

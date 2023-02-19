@@ -35,13 +35,14 @@ namespace TankTrouble
             double angle;
         };
 
-        Object(const util::Vec& pos, double angle, const Color& c);
+        Object(const util::Vec& pos, double angle, const Color& c, int id);
         virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr) = 0;
         virtual PosInfo getNextPosition(int movingStep, int rotationStep) = 0;
         virtual void moveToNextPosition() = 0;
         void resetNextPosition(const PosInfo& next);
         PosInfo getCurrentPosition();
         virtual ObjType type() = 0;
+        [[nodiscard]] int id() const;
         virtual ~Object() = default;
 
     protected:
@@ -49,6 +50,7 @@ namespace TankTrouble
         PosInfo nextPos;
         MovingStatus movingStatus;
         Color color;
+        int _id;
     };
 }
 

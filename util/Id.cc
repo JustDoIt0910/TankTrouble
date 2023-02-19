@@ -3,25 +3,22 @@
 //
 
 #include "Id.h"
+#include "../defs.h"
 #include <cassert>
 
 namespace TankTrouble::util
 {
     int Id::globalTankId = 1;
-    std::mutex Id::tankIdMu;
     int Id::globalBlockId = 11;
-    std::mutex Id::blockIdMu;
+    int Id::globalShellId = MAX_BLOCKS_NUM + 11;
 
     int Id::getTankId()
     {
-        std::lock_guard<std::mutex> lg(tankIdMu);
         assert(globalTankId <= 10);
         return globalTankId++;
     }
 
-    int Id::getBlockId()
-    {
-        std::lock_guard<std::mutex> lg(blockIdMu);
-        return globalBlockId++;
-    }
+    int Id::getBlockId() {return globalBlockId++;}
+
+    int Id::getShellId() {return globalShellId++;}
 }

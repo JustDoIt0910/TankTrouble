@@ -4,6 +4,7 @@
 
 #include "Block.h"
 #include "View.h"
+#include "Shell.h"
 #include <cassert>
 
 namespace TankTrouble
@@ -44,12 +45,29 @@ namespace TankTrouble
             _width = static_cast<int>(tr.x() - tl.x());
         }
         _center = util::Vec((tl.x() + tr.x()) / 2, (tl.y() + bl.y()) / 2);
+        util::Vec btl(tl.x() - Shell::RADIUS, tl.y() - Shell::RADIUS);
+        util::Vec btr(tr.x() + Shell::RADIUS, tr.y() - Shell::RADIUS);
+        util::Vec bbl(bl.x() - Shell::RADIUS, bl.y() + Shell::RADIUS);
+        util::Vec bbr(br.x() + Shell::RADIUS, br.y() + Shell::RADIUS);
+        _border[0] = std::make_pair(btl, btr);
+        _border[1] = std::make_pair(bbl, bbr);
+        _border[2] = std::make_pair(btl, bbl);
+        _border[3] = std::make_pair(btr, bbr);
     }
 
     void Block::draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
         cr->save();
         View::drawRect(cr, BLACK, tl, tr, bl, br);
+        cr->set_line_width(1.0);
+
+//        cr->move_to(_border[0].first.x(), _border[0].first.y());
+//        cr->line_to(_border[0].second.x(), _border[0].second.y());
+//        cr->line_to(_border[1].second.x(), _border[1].second.y());
+//        cr->line_to(_border[1].first.x(), _border[1].first.y());
+//        cr->close_path();
+//        cr->stroke();
+
         cr->set_font_size(20.0);
         cr->move_to(_center.x(), _center.y());
         cr->show_text(std::to_string(_id));
@@ -65,4 +83,10 @@ namespace TankTrouble
     int Block::width() const {return _width;}
 
     int Block::id() const {return  _id;}
+
+    std::pair<util::Vec, util::Vec> Block::border(int n) const
+    {
+        assert(n >= 0 && n < 4);
+        return _border[n];
+    }
 }

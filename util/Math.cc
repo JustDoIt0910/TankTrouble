@@ -76,9 +76,60 @@ namespace TankTrouble::util
         double d2 = std::abs(v * vec1);
         double d3 = sqrt(pow(static_cast<double>(width) / 2, 2) + pow(static_cast<double>(height) / 2, 2));
         double d = v.norm();
-        printf("(%f, %f, %f)\n", d1, d2, d);
+        //printf("(%f, %f, %f)\n", d1, d2, d);
         if(d1 < static_cast<double>(width) / 2 + r && d2 < static_cast<double>(height) / 2 + r && d < d3 + r)
             return true;
         return false;
+    }
+
+    void twoPointToGeneral(Vec p1, Vec p2, double* A, double* B, double* C)
+    {
+        double x1 = p1.x(); double y1 = p1.y();
+        double x2 = p2.x(); double y2 = p2.y();
+        *A = y2 - y1;
+        *B = x1 - x2;
+        *C = x2 * y1 - x1 * y2;
+    }
+
+    bool intersectionOfLines(double A1, double B1, double C1, double A2, double B2, double C2, Vec* p)
+    {
+        double m = A1 * B2 - A2 * B1;
+        if(m == 0)
+            return false;
+        double x = (B1 * C2 - C1 * B2) / m;
+        double y = (C1 * A2 - C2 * A1) / m;
+        *p = Vec(x, y);
+        return true;
+    }
+
+    bool intersectionOfSegments(Vec p1, Vec p2, Vec p3, Vec p4, Vec* i)
+    {
+        Vec n1(p1.y() - p2.y(), p2.x() - p1.x());
+        double d1 = p1 * n1;
+        double d3 = p3 * n1;
+        double d4 = p4 * n1;
+        if((d1 - d3) * (d1 - d4) > 0)
+            return false;
+        Vec n2(p4.y() - p3.y(), p3.x() - p4.x());
+        d4 = p4 * n2;
+        d1 = p1 * n2;
+        double d2 = p2 * n2;
+        if((d4 - d1) * (d4 - d2) > 0)
+            return false;
+
+        double A1, B1, C1, A2, B2, C2;
+        twoPointToGeneral(p1, p2, &A1, &B1, &C1);
+        twoPointToGeneral(p3, p4, &A2, &B2, &C2);
+        return intersectionOfLines(A1, B1, C1, A2, B2, C2, i);
+    }
+
+    double angleFlipX(double angle) {return static_cast<int>(360 - angle) % 360;}
+
+    double angleFlipY(double angle)
+    {
+        if(angle >= 0 && angle <= 180)
+            return 180 - angle;
+        else
+            return 540 - angle;
     }
 }

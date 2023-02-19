@@ -18,15 +18,14 @@ namespace TankTrouble
         void draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         PosInfo getNextPosition(int movingStep, int rotationStep) override;
         void moveToNextPosition() override;
-        void stop();
         void forward(bool enable);
         void backward(bool enable);
         void rotateCW(bool enable);
         void rotateCCW(bool enable);
         ObjType type() override;
-        int id() const;
         [[nodiscard]] int remainShells() const;
         [[nodiscard]] Shell* makeShell();
+        void getRemainShell();
         ~Tank() override = default;
 
         const static int TANK_WIDTH = 20;
@@ -36,7 +35,6 @@ namespace TankTrouble
     private:
         void recalculate();
 
-        int _id;
         util::Vec topLeft, topRight,
         bottomLeft, bottomRight;
         int remainBullets;

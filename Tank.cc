@@ -6,11 +6,12 @@
 #include "View.h"
 #include "Shell.h"
 #include "util/Math.h"
+#include "util/Id.h"
 
 namespace TankTrouble
 {
     Tank::Tank(const util::Vec& p, double angle, const Color& c):
-        Object(p, angle, c),
+        Object(p, angle, c, util::Id::getTankId()),
         remainBullets(5)
     {
         recalculate();
@@ -22,8 +23,6 @@ namespace TankTrouble
                                           Tank::TANK_WIDTH, Tank::TANK_HEIGHT);
         topLeft = corners[0]; topRight = corners[1]; bottomLeft = corners[2]; bottomRight = corners[3];
     }
-
-    void Tank::stop() {movingStatus = MOVING_STATIONARY;}
 
     void Tank::forward(bool enable)
     {
@@ -111,14 +110,14 @@ namespace TankTrouble
 
     ObjType Tank::type() {return OBJ_TANK;}
 
-    int Tank::id() const {return _id;}
-
     int Tank::remainShells() const {return remainBullets;}
 
     Shell* Tank::makeShell()
     {
         remainBullets--;
-        util::Vec shellPos = util::polar2Cart(posInfo.angle, 18, posInfo.pos);
-        return new Shell(shellPos, posInfo.angle);
+        util::Vec shellPos = util::polar2Cart(posInfo.angle, 13, posInfo.pos);
+        return new Shell(shellPos, posInfo.angle, _id);
     }
+
+    void Tank::getRemainShell() {remainBullets++;}
 }

@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "util/Vec.h"
 #include <glibmm/main.h>
+#include "util/Math.h"
 
 namespace TankTrouble
 {
@@ -28,16 +29,35 @@ namespace TankTrouble
                        util::Vec(0, WINDOW_HEIGHT), util::Vec(WINDOW_WIDTH, WINDOW_HEIGHT));
     }
 
+
     bool View::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
+//        cr->set_line_width(1.0);
+//        util::Vec p1(119, 100);
+//        util::Vec p2(200, 100);
+//        util::Vec p3(120, 99);
+//        util::Vec p4(170, 200);
+//        cr->move_to(p1.x(), p1.y());
+//        cr->line_to(p2.x(), p2.y());
+//        cr->move_to(p3.x(), p3.y());
+//        cr->line_to(p4.x(), p4.y());
+//        cr->stroke();
+//
+//        util::Vec i;
+//        if(util::intersectionOfSegments(p1, p2, p3, p4, &i))
+//        {
+//            cr->arc(i.x(), i.y(), 3, 0.0, 2 * M_PI);
+//            cr->fill();
+//        }
+
         drawOutline(cr);
         Controller::BlockList* blocks = ctl->getBlocks();
         for(auto& block: *blocks)
             block.second.draw(cr);
 
         Controller::ObjectListPtr snapshot = ctl->getObjects();
-        for(auto &obj: *snapshot)
-            obj->draw(cr);
+        for(auto &entry: *snapshot)
+            entry.second->draw(cr);
 
         return true;
     }

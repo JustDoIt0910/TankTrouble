@@ -4,11 +4,14 @@
 
 #include "Shell.h"
 #include "util/Math.h"
+#include "util/Id.h"
 
 namespace TankTrouble
 {
-    Shell::Shell(const util::Vec& p, double angle):
-        Object(p, angle, BLACK)
+    Shell::Shell(const util::Vec& p, double angle, int tankId):
+        Object(p, angle, BLACK, util::Id::getShellId()),
+        _tankId(tankId),
+        ttl(INITIAL_TTL)
     {movingStatus = MOVING_FORWARD;}
 
     void Shell::draw(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -33,4 +36,8 @@ namespace TankTrouble
     void Shell::moveToNextPosition() {posInfo = nextPos;}
 
     ObjType Shell::type() {return OBJ_SHELL;}
+
+    int Shell::countDown() {return ttl--;}
+
+    int Shell::tankId() const {return _tankId;}
 }
