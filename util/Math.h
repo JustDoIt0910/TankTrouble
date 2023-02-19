@@ -41,6 +41,15 @@ namespace TankTrouble::util
 
     //求一个角度关于y轴对称的角度
     double angleFlipY(double angle);
+
+    //根据矩形旋转角得到其两条检测轴的单位向量
+    std::pair<Vec, Vec> getUnitVectors(double angleDeg);
+
+    //判断两个矩形是否碰撞(angle为旋转角)
+    bool checkRectRectCollision(double angle1, Vec center1, double W1, double H1,
+                                double angle2, Vec center2, double W2, double H2);
+
+    double distanceOfTwoPoints(const Vec& p1, const Vec& p2);
 }
 
 #endif //TANK_TROUBLE_MATH_H

@@ -12,7 +12,8 @@ namespace TankTrouble::util
         explicit Vec(double x = 0, double y = 0);
         Vec(const Vec&) = default;
         Vec& operator=(const Vec&) = default;
-        double operator*(const Vec& c) const;
+        double operator*(const Vec& v) const;
+        Vec operator-(const Vec& v) const;
         [[nodiscard]] double norm() const;
         void swap(Vec& c);
         [[nodiscard]] double x() const;

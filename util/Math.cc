@@ -7,6 +7,7 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+#include <utility>
 #include <algorithm>
 
 namespace TankTrouble::util
@@ -131,5 +132,47 @@ namespace TankTrouble::util
             return 180 - angle;
         else
             return 540 - angle;
+    }
+
+    std::pair<Vec, Vec> getUnitVectors(double angleDeg)
+    {
+        double angleRad = deg2Rad(angleDeg);
+        Vec v1(cos(angleRad), -sin(angleRad));
+        Vec v2(sin(angleRad), cos(angleRad));
+        return std::make_pair(v1, v2);
+    }
+
+    bool checkRectRectCollision(double angle1, Vec center1, double W1, double H1,
+                                double angle2, Vec center2, double W2, double H2)
+    {
+        std::pair<Vec, Vec> units1 = getUnitVectors(angle1);
+        std::pair<Vec, Vec> units2 = getUnitVectors(angle2);
+        Vec axis1 = units1.first; Vec axis2 = units1.second;
+        Vec axis3 = units2.first; Vec axis4 = units2.second;
+        Vec v = center1 - center2;
+        double projV = std::abs(v * axis1);
+        double projRadius = std::abs(axis3 * axis1) * H2 / 2 + std::abs(axis4 * axis1) * W2 / 2;
+        if(projRadius + H1 / 2 <= projV)
+            return false;
+        projV = std::abs(v * axis2);
+        projRadius = std::abs(axis3 * axis2) * H2 / 2 + std::abs(axis4 * axis2) * W2 / 2;
+        if(projRadius + W1 / 2 <= projV)
+            return false;
+
+        projV = std::abs(v * axis3);
+        projRadius = std::abs(axis1 * axis3) * H1 / 2 + std::abs(axis2 * axis3) * W1 / 2;
+        if(projRadius + H2 / 2 <= projV)
+            return false;
+        projV = std::abs(v * axis4);
+        projRadius = std::abs(axis1 * axis4) * H1 / 2 + std::abs(axis2 * axis4) * W1 / 2;
+        if(projRadius + W2 / 2 <= projV)
+            return false;
+        return true;
+    }
+
+    double distanceOfTwoPoints(const Vec& p1, const Vec& p2)
+    {
+        Vec v = p2 - p1;
+        return v.norm();
     }
 }

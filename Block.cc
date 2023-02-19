@@ -61,16 +61,10 @@ namespace TankTrouble
         View::drawRect(cr, BLACK, tl, tr, bl, br);
         cr->set_line_width(1.0);
 
-//        cr->move_to(_border[0].first.x(), _border[0].first.y());
-//        cr->line_to(_border[0].second.x(), _border[0].second.y());
-//        cr->line_to(_border[1].second.x(), _border[1].second.y());
-//        cr->line_to(_border[1].first.x(), _border[1].first.y());
-//        cr->close_path();
-//        cr->stroke();
+//        cr->set_font_size(20.0);
+//        cr->move_to(_center.x(), _center.y());
+//        cr->show_text(std::to_string(_id));
 
-        cr->set_font_size(20.0);
-        cr->move_to(_center.x(), _center.y());
-        cr->show_text(std::to_string(_id));
         cr->restore();
     }
 

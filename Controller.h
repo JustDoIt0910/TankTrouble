@@ -49,6 +49,7 @@ namespace TankTrouble
         void controlEventHandler(ev::Event* event);
         void fire(Tank* tank);
         int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
+        int checkTankCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
         Object::PosInfo getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId);
 
         void initBlocks(int num);
@@ -63,6 +64,7 @@ namespace TankTrouble
         std::thread controlThread;
         ev::reactor::EventLoop* controlLoop;
         std::vector<int> possibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
+        int tankNum;
     };
 }
 

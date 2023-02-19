@@ -12,17 +12,23 @@
 #include <thread>
 #include <cassert>
 #include <iostream>
-#include <stdio.h>
 
 namespace TankTrouble
 {
+    static util::Vec topBorderCenter(static_cast<double>(WINDOW_WIDTH) / 2, 2.0);
+    static util::Vec leftBorderCenter(2.0, static_cast<double>(WINDOW_HEIGHT) / 2);
+    static util::Vec bottomBorderCenter(static_cast<double>(WINDOW_WIDTH) / 2, static_cast<double>(WINDOW_HEIGHT) - 2 - 1);
+    static util::Vec rightBorderCenter(static_cast<double>(WINDOW_WIDTH) - 2 - 1, static_cast<double>(WINDOW_HEIGHT) / 2);
+
     Controller::Controller():
         started(false),
         controlLoop(nullptr),
-        snapshot(new ObjectList)
+        snapshot(new ObjectList),
+        tankNum(0)
     {
         std::unique_ptr<Object> tank(new Tank(util::Vec(100, 100), 90.0, RED));
         objects[tank->id()] = std::move(tank);
+        tankNum++;
         initBlocks(45);
     }
 
@@ -51,7 +57,7 @@ namespace TankTrouble
         }
         auto* event = new ControlEvent;
         loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
-        loop.runEvery(0.05, [this]{this->moveAll();});
+        loop.runEvery(0.02, [this]{this->moveAll();});
         loop.loop();
         controlLoop = nullptr;
     }
@@ -101,33 +107,53 @@ namespace TankTrouble
             std::unique_ptr<Object>& obj = entry.second;
             Object::PosInfo next = obj->getNextPosition(0, 0);
             Object::PosInfo cur = obj->getCurrentPosition();
+            bool countdown = false;
             if(obj->type() == OBJ_SHELL)
             {
+                auto* shell = dynamic_cast<Shell*>(obj.get());
                 int id = checkShellCollision(cur, next);
-                if(id == -1)
+                if(id == VERTICAL_BORDER_ID)
                 {
                     next.angle = util::angleFlipY(next.angle);
                     obj->resetNextPosition(next);
+                    countdown = true;
                 }
-                else if(id == -2)
+                else if(id == HORIZON_BORDER_ID)
                 {
                     next.angle = util::angleFlipX(next.angle);
                     obj->resetNextPosition(next);
+                    countdown = true;
                 }
-                else if(id > 10)
+                else if(id > MAX_TANK_ID)
                 {
-                    std::cout << "collision block" << id << std::endl;
                     obj->resetNextPosition(getBouncedPosition(cur, next, id));
+                    countdown = true;
                 }
-                if(id)
+                else if(id >= MIN_TANK_ID)
                 {
-                    auto* shell = dynamic_cast<Shell*>(obj.get());
-                    if(shell->countDown() <= 0)
+                    if(id != shell->tankId() || shell->ttl() < Shell::INITIAL_TTL)
                     {
-                        deletedObjs.push_back(obj->id());
-                        dynamic_cast<Tank*>(objects[shell->tankId()].get())->getRemainShell();
+                        deletedObjs.push_back(id);
+                        deletedObjs.push_back(shell->id());
+                        if(id == 1)
+                        {
+                            auto* event = new ControlEvent;
+                            controlLoop->removeEventListener(event);
+                        }
                     }
                 }
+                if(countdown && shell->countDown() <= 0)
+                {
+                    deletedObjs.push_back(shell->id());
+                    dynamic_cast<Tank*>(objects[shell->tankId()].get())->getRemainShell();
+                }
+            }
+            else
+            {
+                auto* tank = dynamic_cast<Tank*>(obj.get());
+                int id = checkTankCollision(tank, cur, next);
+                if(id)
+                    obj->resetNextPosition(cur);
             }
             obj->moveToNextPosition();
         }
@@ -155,9 +181,10 @@ namespace TankTrouble
     int Controller::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         if(nextPos.pos.x() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.x() > WINDOW_WIDTH - 1 - Block::BLOCK_WIDTH)
-            return -1;
+            return VERTICAL_BORDER_ID;
         if(nextPos.pos.y() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.y() > WINDOW_HEIGHT - 1 - Block::BLOCK_WIDTH)
-            return -2;
+            return HORIZON_BORDER_ID;
+
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
         static double degreeRange[] = {0.0, 90.0, 180.0, 270.0, 360.0};
         static int directions[] = {RIGHT, UPWARDS_RIGHT, UPWARDS, UPWARDS_LEFT,
@@ -187,6 +214,43 @@ namespace TankTrouble
                 return blockId;
             }
         }
+
+        for(int id = MIN_TANK_ID; id <= MAX_TANK_ID; id++)
+        {
+            if(objects.find(id) == objects.end())
+                continue;
+            Tank* tank = dynamic_cast<Tank*>(objects[id].get());
+            auto axis = util::getUnitVectors(tank->getCurrentPosition().angle);
+            if(util::checkRectCircleCollision(axis.first, axis.second, tank->getCurrentPosition().pos, nextPos.pos,
+                                              Tank::TANK_WIDTH, Tank::TANK_HEIGHT, Shell::RADIUS))
+            {
+                std::cout << "boom" << std::endl;
+                return id;
+            }
+        }
+        return 0;
+    }
+
+    int Controller::checkTankCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    {
+        util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
+        for (int i = 0; i < 7; ++i)
+        {
+            for(int blockId: possibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())][i])
+            {
+                Block block = blocks[blockId];
+                double blockAngle = block.isHorizon() ? 0.0 : 90.0;
+                if(util::checkRectRectCollision(blockAngle, block.center(), block.width(), block.height(),
+                                                nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+                    return blockId;
+            }
+        }
+        if(util::checkRectRectCollision(90.0, leftBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
+                util::checkRectRectCollision(90.0, rightBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+            return VERTICAL_BORDER_ID;
+        if(util::checkRectRectCollision(0.0, topBorderCenter, 4.0, WINDOW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
+           util::checkRectRectCollision(0.0, bottomBorderCenter, 4.0, WINDOW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+            return VERTICAL_BORDER_ID;
         return 0;
     }
 
@@ -194,8 +258,6 @@ namespace TankTrouble
     {
         Block block = blocks[blockId];
         Object::PosInfo bounced = next;
-//        util::Vec p1 = util::polar2Cart(cur.angle, 10, next.pos);
-//        util::Vec p2 = util::polar2Cart(cur.angle + 180, 10, cur.pos);
         for(int i = 0; i < 4; i++)
         {
             std::pair<util::Vec, util::Vec> b = block.border(i);

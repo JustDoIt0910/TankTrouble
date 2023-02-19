@@ -30,7 +30,7 @@ namespace TankTrouble
 
         const static int TANK_WIDTH = 20;
         const static int TANK_HEIGHT = 25;
-        const static int ROTATING_STEP = 12;
+        const static int ROTATING_STEP = 4;
 
     private:
         void recalculate();

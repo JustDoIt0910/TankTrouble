@@ -5,6 +5,11 @@
 #ifndef TANK_TROUBLE_ID_H
 #define TANK_TROUBLE_ID_H
 
+#define VERTICAL_BORDER_ID      -1
+#define HORIZON_BORDER_ID       -2
+#define MIN_TANK_ID             1
+#define MAX_TANK_ID             10
+
 namespace TankTrouble::util
 {
     class Id

@@ -115,7 +115,7 @@ namespace TankTrouble
     Shell* Tank::makeShell()
     {
         remainBullets--;
-        util::Vec shellPos = util::polar2Cart(posInfo.angle, 13, posInfo.pos);
+        util::Vec shellPos = util::polar2Cart(posInfo.angle, 10, posInfo.pos);
         return new Shell(shellPos, posInfo.angle, _id);
     }
 

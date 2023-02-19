@@ -11,7 +11,7 @@ namespace TankTrouble
     Shell::Shell(const util::Vec& p, double angle, int tankId):
         Object(p, angle, BLACK, util::Id::getShellId()),
         _tankId(tankId),
-        ttl(INITIAL_TTL)
+        _ttl(INITIAL_TTL)
     {movingStatus = MOVING_FORWARD;}
 
     void Shell::draw(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -37,7 +37,9 @@ namespace TankTrouble
 
     ObjType Shell::type() {return OBJ_SHELL;}
 
-    int Shell::countDown() {return ttl--;}
+    int Shell::countDown() {return _ttl--;}
 
     int Shell::tankId() const {return _tankId;}
+
+    int Shell::ttl() const {return _ttl;}
 }

@@ -163,6 +163,15 @@ namespace ev::reactor
         });
     }
 
+    void EventLoop::removeEventListener(Event* event)
+    {
+        runInLoop([this, event]{
+            if(eventListeners.find(event->name()) != eventListeners.end())
+                eventListeners.erase(event->name());
+            delete event;
+        });
+    }
+
     void EventLoop::dispatchEvent(Event* event)
     {
         runInLoop([this, event]{

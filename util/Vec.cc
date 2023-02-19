@@ -9,7 +9,9 @@ namespace TankTrouble::util
 {
     Vec::Vec(double x, double y): _x(x), _y(y){}
 
-    double Vec::operator*(const Vec& c) const {return _x * c.x() + _y * c.y();}
+    double Vec::operator*(const Vec& v) const {return _x * v.x() + _y * v.y();}
+
+    Vec Vec::operator-(const Vec& v) const {return Vec(_x - v.x(), _y - v.y());}
 
     double Vec::norm() const {return sqrt(pow(_x, 2) + pow(_y, 2));}
 

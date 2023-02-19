@@ -45,6 +45,7 @@ namespace ev::reactor
         Timer::TimerId runEvery(double interval, Timer::TimerTask task);
         void cancelTimer(Timer::TimerId id);
         void addEventListener(Event* event, EventListener listener);
+        void removeEventListener(Event* event);
         void dispatchEvent(Event* event);
         void assertInLoopThread() const;
         [[nodiscard]] bool isInLoopThread() const;
