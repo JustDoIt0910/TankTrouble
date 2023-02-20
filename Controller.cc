@@ -9,6 +9,7 @@
 #include "event/ControlEvent.h"
 #include "Tank.h"
 #include "Shell.h"
+#include "AgentSmith.h"
 #include <thread>
 #include <cassert>
 #include <iostream>
@@ -26,10 +27,10 @@ namespace TankTrouble
         snapshot(new ObjectList),
         tankNum(0)
     {
+        initBlocks(45);
         std::unique_ptr<Object> tank(new Tank(util::Vec(100, 100), 90.0, RED));
         objects[tank->id()] = std::move(tank);
         tankNum++;
-        initBlocks(45);
     }
 
     Controller::~Controller()
@@ -112,24 +113,12 @@ namespace TankTrouble
             {
                 auto* shell = dynamic_cast<Shell*>(obj.get());
                 int id = checkShellCollision(cur, next);
-                if(id == VERTICAL_BORDER_ID)
-                {
-                    next.angle = util::angleFlipY(next.angle);
-                    obj->resetNextPosition(next);
-                    countdown = true;
-                }
-                else if(id == HORIZON_BORDER_ID)
-                {
-                    next.angle = util::angleFlipX(next.angle);
-                    obj->resetNextPosition(next);
-                    countdown = true;
-                }
-                else if(id > MAX_TANK_ID)
+                if(id < 0 || id > MAX_TANK_ID)
                 {
                     obj->resetNextPosition(getBouncedPosition(cur, next, id));
                     countdown = true;
                 }
-                else if(id >= MIN_TANK_ID)
+                else if(id)
                 {
                     if(id != shell->tankId() || shell->ttl() < Shell::INITIAL_TTL)
                     {
@@ -145,13 +134,14 @@ namespace TankTrouble
                 if(countdown && shell->countDown() <= 0)
                 {
                     deletedObjs.push_back(shell->id());
-                    dynamic_cast<Tank*>(objects[shell->tankId()].get())->getRemainShell();
+                    if(objects.find(shell->tankId()) != objects.end())
+                        dynamic_cast<Tank*>(objects[shell->tankId()].get())->getRemainShell();
                 }
             }
             else
             {
                 auto* tank = dynamic_cast<Tank*>(obj.get());
-                int id = checkTankCollision(tank, cur, next);
+                int id = checkTankBlockCollision(tank, cur, next);
                 if(id)
                     obj->resetNextPosition(cur);
             }
@@ -179,6 +169,13 @@ namespace TankTrouble
     }
 
     int Controller::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    {
+        int collisionBlock = checkShellBlockCollision(curPos, nextPos);
+        if(collisionBlock) return collisionBlock;
+        return checkShellTankCollision(curPos, nextPos);
+    }
+
+    int Controller::checkShellBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         if(nextPos.pos.x() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.x() > WINDOW_WIDTH - 1 - Block::BLOCK_WIDTH)
             return VERTICAL_BORDER_ID;
@@ -214,7 +211,11 @@ namespace TankTrouble
                 return blockId;
             }
         }
+        return 0;
+    }
 
+    int Controller::checkShellTankCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    {
         for(int id = MIN_TANK_ID; id <= MAX_TANK_ID; id++)
         {
             if(objects.find(id) == objects.end())
@@ -231,7 +232,7 @@ namespace TankTrouble
         return 0;
     }
 
-    int Controller::checkTankCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int Controller::checkTankBlockCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
         for (int i = 0; i < 7; ++i)
@@ -256,8 +257,13 @@ namespace TankTrouble
 
     Object::PosInfo Controller::getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId)
     {
-        Block block = blocks[blockId];
         Object::PosInfo bounced = next;
+        if(blockId < 0)
+        {
+            bounced.angle = (blockId == VERTICAL_BORDER_ID) ? util::angleFlipY(next.angle) : util::angleFlipX(next.angle);
+            return bounced;
+        }
+        Block block = blocks[blockId];
         for(int i = 0; i < 4; i++)
         {
             std::pair<util::Vec, util::Vec> b = block.border(i);

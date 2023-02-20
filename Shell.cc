@@ -25,11 +25,17 @@ namespace TankTrouble
 
     Object::PosInfo Shell::getNextPosition(int movingStep, int rotationStep)
     {
+        Object::PosInfo next = getNextPosition(posInfo, movingStep, rotationStep);
+        nextPos = next;
+        return next;
+    }
+
+    Object::PosInfo Shell::getNextPosition(const Object::PosInfo& cur, int movingStep, int rotationStep)
+    {
         if(movingStep == 0)
             movingStep = SHELL_MOVING_STEP;
-        Object::PosInfo next = posInfo;
-        next.pos = util::polar2Cart(posInfo.angle, movingStep, posInfo.pos);
-        nextPos = next;
+        Object::PosInfo next = cur;
+        next.pos = util::polar2Cart(cur.angle, movingStep, cur.pos);
         return next;
     }
 

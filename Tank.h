@@ -17,6 +17,7 @@ namespace TankTrouble
         Tank(const Tank& t) = default;
         void draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         PosInfo getNextPosition(int movingStep, int rotationStep) override;
+        static PosInfo getNextPosition(const PosInfo& cur, int movingStatus, int movingStep, int rotationStep);
         void moveToNextPosition() override;
         void forward(bool enable);
         void backward(bool enable);

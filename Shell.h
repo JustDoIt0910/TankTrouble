@@ -18,6 +18,7 @@ namespace TankTrouble
         [[nodiscard]] int ttl() const;
         void draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         PosInfo getNextPosition(int movingStep, int rotationStep) override;
+        static PosInfo getNextPosition(const PosInfo& cur, int movingStep, int rotationStep);
         void moveToNextPosition() override;
         int countDown();
         [[nodiscard]] int tankId() const;

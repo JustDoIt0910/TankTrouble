@@ -85,20 +85,26 @@ namespace TankTrouble
 
     Object::PosInfo Tank::getNextPosition(int movingStep, int rotationStep)
     {
+        Object::PosInfo next = getNextPosition(posInfo, movingStatus, movingStep, rotationStep);
+        nextPos = next;
+        return next;
+    }
+
+    Object::PosInfo Tank::getNextPosition(const Object::PosInfo& cur, int movingStatus, int movingStep, int rotationStep)
+    {
         if(movingStep == 0)
             movingStep = TANK_MOVING_STEP;
         if(rotationStep == 0)
-            rotationStep = ROTATING_STEP;
-        Object::PosInfo next = posInfo;
+            rotationStep = Tank::ROTATING_STEP;
+        Object::PosInfo next = cur;
         if(movingStatus & ROTATING_CW)
-            next.angle = static_cast<int>(360 + posInfo.angle - rotationStep) % 360;
+            next.angle = static_cast<int>(360 + cur.angle - rotationStep) % 360;
         if(movingStatus & ROTATING_CCW)
-            next.angle = static_cast<int>(posInfo.angle + rotationStep) % 360;
+            next.angle = static_cast<int>(cur.angle + rotationStep) % 360;
         if(movingStatus & MOVING_FORWARD)
-            next.pos = util::polar2Cart(next.angle, movingStep, posInfo.pos);
+            next.pos = util::polar2Cart(next.angle, movingStep, cur.pos);
         if(movingStatus & MOVING_BACKWARD)
-            next.pos = util::polar2Cart(next.angle + 180, movingStep, posInfo.pos);
-        nextPos = next;
+            next.pos = util::polar2Cart(next.angle + 180, movingStep, cur.pos);
         return next;
     }
 
