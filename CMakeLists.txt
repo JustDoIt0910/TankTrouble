@@ -15,7 +15,7 @@ set(TANK_TROUBLE_SRC main.cc
         event/ControlEvent.cc
         Object.cc
         util/Id.cc
-        AgentSmith.cc)
+        smithAI/AgentSmith.cc smithAI/DodgeStrategy.cc smithAI/DodgeStrategy.h)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)

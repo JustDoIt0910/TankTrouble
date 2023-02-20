@@ -7,6 +7,7 @@
 #include "util/Vec.h"
 #include <cairomm/context.h>
 #include <vector>
+#include <cfloat>
 
 #define MOVING_STATIONARY 1
 #define MOVING_FORWARD 2
@@ -29,8 +30,15 @@ namespace TankTrouble
         struct PosInfo
         {
             PosInfo(const util::Vec& p, double a): pos(p), angle(a){}
+
             PosInfo& operator=(const PosInfo& info) = default;
+
             PosInfo(): PosInfo(util::Vec(0.0, 0.0), 0){}
+
+            static PosInfo invalid() {return PosInfo{util::Vec(DBL_MAX, DBL_MAX), DBL_MAX};}
+
+            static bool isValid(const PosInfo& p) {return (p.pos.x() != DBL_MAX && p.pos.y() != DBL_MAX && p.angle != p.pos.x() != DBL_MAX);}
+
             util::Vec pos;
             double angle;
         };

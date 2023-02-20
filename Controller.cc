@@ -9,7 +9,7 @@
 #include "event/ControlEvent.h"
 #include "Tank.h"
 #include "Shell.h"
-#include "AgentSmith.h"
+#include "smithAI/AgentSmith.h"
 #include <thread>
 #include <cassert>
 #include <iostream>
@@ -25,12 +25,14 @@ namespace TankTrouble
         started(false),
         controlLoop(nullptr),
         snapshot(new ObjectList),
-        tankNum(0)
+        tankNum(0),
+        globalSteps(0),
+        smith(new AgentSmith(this))
     {
         initBlocks(45);
         std::unique_ptr<Object> tank(new Tank(util::Vec(100, 100), 90.0, RED));
         objects[tank->id()] = std::move(tank);
-        tankNum++;
+        tankNum += 1;
     }
 
     Controller::~Controller()
@@ -59,6 +61,15 @@ namespace TankTrouble
         auto* event = new ControlEvent;
         loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
         loop.runEvery(0.02, [this]{this->moveAll();});
+
+        loop.runEvery(2.0, [this] () -> void {
+            AgentSmith::PredictingShellList shells;
+            for(const auto& entry: objects)
+                if(entry.second->type() == OBJ_SHELL)
+                    shells[entry.first] = entry.second->getCurrentPosition();
+
+        });
+
         loop.loop();
         controlLoop = nullptr;
     }
@@ -102,6 +113,7 @@ namespace TankTrouble
     void Controller::moveAll()
     {
         ev::Timestamp before = ev::Timestamp::now();
+        globalSteps++;
         deletedObjs.clear();
         for(auto& entry: objects)
         {
@@ -224,10 +236,7 @@ namespace TankTrouble
             auto axis = util::getUnitVectors(tank->getCurrentPosition().angle);
             if(util::checkRectCircleCollision(axis.first, axis.second, tank->getCurrentPosition().pos, nextPos.pos,
                                               Tank::TANK_WIDTH, Tank::TANK_HEIGHT, Shell::RADIUS))
-            {
-                std::cout << "boom" << std::endl;
                 return id;
-            }
         }
         return 0;
     }

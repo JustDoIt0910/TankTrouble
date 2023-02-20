@@ -28,6 +28,8 @@
 
 namespace TankTrouble
 {
+    class AgentSmith;
+
     class Controller {
     public:
         typedef std::unique_ptr<Object> ObjectPtr;
@@ -69,8 +71,10 @@ namespace TankTrouble
         ev::reactor::EventLoop* controlLoop;
         std::vector<int> possibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
         int tankNum;
+        uint64_t globalSteps;
 
         friend class AgentSmith;
+        std::unique_ptr<AgentSmith> smith;
     };
 }
 
