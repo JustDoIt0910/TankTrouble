@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string>
 #include <iostream>
-#include "../util/Vec.h"
+#include "util/Vec.h"
 
 namespace TankTrouble
 {

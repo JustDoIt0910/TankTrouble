@@ -4,10 +4,10 @@
 
 #include "AgentSmith.h"
 #include "DodgeStrategy.h"
-#include "../Controller.h"
-#include "../Shell.h"
-#include "../util/Math.h"
-#include "../event/StrategyUpdateEvent.h"
+#include "Controller.h"
+#include "Shell.h"
+#include "util/Math.h"
+#include "event/StrategyUpdateEvent.h"
 #include <iostream>
 
 namespace TankTrouble

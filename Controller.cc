@@ -13,7 +13,6 @@
 #include "smithAI/AgentSmith.h"
 #include <thread>
 #include <cassert>
-#include <iostream>
 
 namespace TankTrouble
 {
@@ -28,8 +27,7 @@ namespace TankTrouble
         snapshot(new ObjectList),
         tankNum(0),
         globalSteps(0),
-        smith(new AgentSmith(this)),
-        prev(AgentSmith::BallisticSegment::invalid())
+        smith(new AgentSmith(this))
     {
         initBlocks(45);
         std::unique_ptr<Object> tank(new Tank(util::Vec(270, 220), 90.0, RED));

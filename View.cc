@@ -6,7 +6,6 @@
 #include "defs.h"
 #include "util/Vec.h"
 #include <glibmm/main.h>
-#include "util/Math.h"
 
 namespace TankTrouble
 {
@@ -29,35 +28,8 @@ namespace TankTrouble
                        util::Vec(0, WINDOW_HEIGHT), util::Vec(WINDOW_WIDTH, WINDOW_HEIGHT));
     }
 
-#include "smithAI/AgentSmith.h"
-#include "Object.h"
-
     bool View::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
-
-//        {
-//            std::lock_guard<std::mutex> lg(ctl->mu2);
-//            for(const auto& entry: ctl->ballistics)
-//            {
-//                for(const AgentSmith::BallisticSegment& segment: entry.second)
-//                {
-//                    cr->move_to(segment.start.second.x(), segment.start.second.y());
-//                    cr->line_to(segment.end.second.x(), segment.end.second.y());
-//                }
-//            }
-//            if(ctl->prev.isValid())
-//            {
-//                cr->stroke();
-//                cr->save();
-//                cr->set_source_rgb(0, 0, 1);
-//                cr->move_to(ctl->prev.start.second.x(), ctl->prev.start.second.y());
-//                cr->line_to(ctl->prev.end.second.x(), ctl->prev.end.second.y());
-//                cr->stroke();
-//                cr->restore();
-//            }
-//
-//        }
-
         drawOutline(cr);
         Controller::BlockList* blocks = ctl->getBlocks();
         for(auto& block: *blocks)

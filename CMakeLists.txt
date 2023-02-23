@@ -15,7 +15,10 @@ set(TANK_TROUBLE_SRC main.cc
         event/ControlEvent.cc
         Object.cc
         util/Id.cc
-        smithAI/AgentSmith.cc smithAI/DodgeStrategy.cc smithAI/DodgeStrategy.h event/StrategyUpdateEvent.cc event/StrategyUpdateEvent.h)
+        smithAI/AgentSmith.cc
+        smithAI/DodgeStrategy.cc
+        event/StrategyUpdateEvent.cc
+        smithAI/AStar.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)
@@ -24,8 +27,9 @@ set(EV_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/ev/ev)
 set(EV_LIBRARY_DIRS ${CMAKE_BINARY_DIR}/ev/ev/reactor)
 add_subdirectory(ev)
 
-include_directories(${GTKMM_INCLUDE_DIRS} ${EV_INCLUDE_DIRS})
+include_directories(${GTKMM_INCLUDE_DIRS} ${EV_INCLUDE_DIRS} .)
 link_directories(${GTKMM_LIBRARY_DIRS} ${EV_LIBRARY_DIRS})
 link_libraries(${GTKMM_LIBRARIES} reactor pthread)
 
 add_executable(TankTrouble ${TANK_TROUBLE_SRC})
+add_subdirectory(test)

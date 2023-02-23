@@ -1,0 +1,1 @@
+add_executable(test_astar test_astar.cc)

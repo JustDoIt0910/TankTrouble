@@ -3,7 +3,7 @@
 //
 
 #include "DodgeStrategy.h"
-#include "../Tank.h"
+#include "Tank.h"
 #include <iostream>
 
 namespace TankTrouble

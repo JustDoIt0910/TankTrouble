@@ -2,7 +2,7 @@
 // Created by zr on 23-2-8.
 //
 #include "Math.h"
-#include "../defs.h"
+#include "defs.h"
 #include <cmath>
 #include <numeric>
 #include <random>

@@ -9,8 +9,8 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
-#include "../util/Vec.h"
-#include "../Object.h"
+#include "util/Vec.h"
+#include "Object.h"
 #include "DodgeStrategy.h"
 
 #define LEFT_SIDE 0
@@ -40,7 +40,7 @@ namespace TankTrouble
 
         void getDodgeStrategy(const Object::PosInfo& smithPos, uint64_t globalSteps);
 
-
+    private:
         typedef std::pair<uint64_t , util::Vec> KeyPoint;
         struct BallisticSegment
         {
@@ -63,29 +63,6 @@ namespace TankTrouble
 
         typedef std::vector<BallisticSegment> Ballistic;
         typedef std::unordered_map<int, Ballistic> Ballistics;
-
-    private:
-//        typedef std::pair<uint64_t , util::Vec> KeyPoint;
-//        struct BallisticSegment
-//        {
-//            int shellId;
-//            int seq;
-//            KeyPoint start;
-//            KeyPoint end;
-//            util::Vec center;
-//            double angle;
-//            double length;
-//            double distanceToTarget;
-//            //BallisticSegment() = default;
-//            BallisticSegment(int id, int seq,
-//                             const KeyPoint& s, const KeyPoint& e,
-//                             double len, double a, double dis):
-//                    shellId(id), seq(seq), start(s), end(e), length(len), angle(a), distanceToTarget(dis)
-//            {center = util::Vec((start.second.x() + end.second.x()) / 2, (start.second.y() + end.second.y()) / 2);}
-//        };
-//
-//        typedef std::vector<BallisticSegment> Ballistic;
-//        typedef std::unordered_map<int, Ballistic> Ballistics;
 
         static bool segmentCmp(const BallisticSegment& s1, const BallisticSegment& s2);
 

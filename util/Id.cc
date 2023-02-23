@@ -3,7 +3,7 @@
 //
 
 #include "Id.h"
-#include "../defs.h"
+#include "defs.h"
 #include <cassert>
 
 namespace TankTrouble::util

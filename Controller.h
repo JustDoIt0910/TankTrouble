@@ -47,11 +47,6 @@ namespace TankTrouble
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
 
-        //testing
-        std::mutex mu2;
-        AgentSmith::Ballistics ballistics;
-        AgentSmith::BallisticSegment prev;
-
     private:
         void run();
         void moveAll();
