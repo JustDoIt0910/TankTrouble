@@ -70,7 +70,7 @@ namespace TankTrouble::util
 
     bool checkRectCircleCollision(const Vec& vec1, const Vec& vec2,
                                   const Vec& rectCenter, const Vec& circleCenter,
-                                  int width, int height, int r)
+                                  int width, int height, double r)
     {
         Vec v = Vec(circleCenter.x() - rectCenter.x(), circleCenter.y() - rectCenter.y());
         double d1 = std::abs(v * vec2);
@@ -142,6 +142,12 @@ namespace TankTrouble::util
         return std::make_pair(v1, v2);
     }
 
+    util::Vec getUnitVector(double angleDeg)
+    {
+        double angleRad = deg2Rad(angleDeg);
+        return Vec(cos(angleRad), -sin(angleRad));
+    }
+
     bool checkRectRectCollision(double angle1, Vec center1, double W1, double H1,
                                 double angle2, Vec center2, double W2, double H2)
     {
@@ -174,5 +180,11 @@ namespace TankTrouble::util
     {
         Vec v = p2 - p1;
         return v.norm();
+    }
+
+    double angleBetweenVectors(const Vec& v1, const Vec& v2)
+    {
+        double cos = (v1 * v2) / (v1.norm() * v2.norm());
+        return rad2Deg(acos(cos));
     }
 }

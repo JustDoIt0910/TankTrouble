@@ -13,9 +13,11 @@ namespace TankTrouble::util
         Vec(const Vec&) = default;
         Vec& operator=(const Vec&) = default;
         double operator*(const Vec& v) const;
+        bool operator==(const Vec& v) const;
         Vec operator-(const Vec& v) const;
         [[nodiscard]] double norm() const;
-        void swap(Vec& c);
+        void swap(Vec& v);
+        [[nodiscard]] double cross(const Vec& v) const;
         [[nodiscard]] double x() const;
         [[nodiscard]] double y() const;
     private:

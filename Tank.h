@@ -19,17 +19,22 @@ namespace TankTrouble
         PosInfo getNextPosition(int movingStep, int rotationStep) override;
         static PosInfo getNextPosition(const PosInfo& cur, int movingStatus, int movingStep, int rotationStep);
         void moveToNextPosition() override;
+        void stop();
         void forward(bool enable);
         void backward(bool enable);
         void rotateCW(bool enable);
         void rotateCCW(bool enable);
+        bool isForwarding();
+        bool isBackwarding();
+        bool isRotatingCW();
+        bool isRotatingCCW();
         ObjType type() override;
         [[nodiscard]] int remainShells() const;
         [[nodiscard]] Shell* makeShell();
         void getRemainShell();
         ~Tank() override = default;
 
-        const static int TANK_WIDTH = 20;
+        const static int TANK_WIDTH = 18;
         const static int TANK_HEIGHT = 25;
         const static int ROTATING_STEP = 4;
 

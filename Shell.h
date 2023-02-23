@@ -23,8 +23,8 @@ namespace TankTrouble
         int countDown();
         [[nodiscard]] int tankId() const;
 
-        const static int RADIUS = 3;
-        const static int INITIAL_TTL = 20;
+        const static double RADIUS;
+        const static int INITIAL_TTL = 10;
 
     private:
         int _ttl;

@@ -11,14 +11,18 @@ namespace TankTrouble::util
 
     double Vec::operator*(const Vec& v) const {return _x * v.x() + _y * v.y();}
 
+    bool Vec::operator==(const Vec& v) const {return (_x == v.x() && _y == v.y());}
+
     Vec Vec::operator-(const Vec& v) const {return Vec(_x - v.x(), _y - v.y());}
 
     double Vec::norm() const {return sqrt(pow(_x, 2) + pow(_y, 2));}
 
-    void Vec::swap(Vec &c)
+    double Vec::cross(const Vec &v) const {return _x * v.y() - v.x() * _y;}
+
+    void Vec::swap(Vec &v)
     {
-        Vec t = c;
-        c = *this;
+        Vec t = v;
+        v = *this;
         _x = t.x();
         _y = t.y();
     }

@@ -21,6 +21,8 @@ namespace TankTrouble
         Controller* ctl;
         bool KeyUpPressed, KeyDownPressed, KeyLeftPressed, KeyRightPressed;
         bool spacePressed;
+        //testing
+        bool KeyDPressed;
     };
 }
 

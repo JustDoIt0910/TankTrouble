@@ -16,6 +16,8 @@
 #include "Tank.h"
 #include "Block.h"
 #include "defs.h"
+#include "smithAI/DodgeStrategy.h"
+#include "smithAI/AgentSmith.h"
 
 #define UPWARDS             0
 #define UPWARDS_LEFT        1
@@ -28,7 +30,7 @@
 
 namespace TankTrouble
 {
-    class AgentSmith;
+    //class AgentSmith;
 
     class Controller {
     public:
@@ -45,17 +47,23 @@ namespace TankTrouble
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
 
+        //testing
+        std::mutex mu2;
+        AgentSmith::Ballistics ballistics;
+        AgentSmith::BallisticSegment prev;
+
     private:
         void run();
         void moveAll();
         void controlEventHandler(ev::Event* event);
+        void dodgeStrategyUpdateHandler(ev::Event* event);
         void fire(Tank* tank);
 
         int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
         int checkShellBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
         int checkShellTankCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
 
-        int checkTankBlockCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
+        int checkTankBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
         Object::PosInfo getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId);
 
         void initBlocks(int num);
@@ -69,12 +77,14 @@ namespace TankTrouble
         bool started;
         std::thread controlThread;
         ev::reactor::EventLoop* controlLoop;
-        std::vector<int> possibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
+        std::vector<int> shellPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
+        std::vector<int> tankPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
         int tankNum;
         uint64_t globalSteps;
 
         friend class AgentSmith;
         std::unique_ptr<AgentSmith> smith;
+        DodgeStrategy smithDodgeStrategy;
     };
 }
 

@@ -8,6 +8,7 @@
 
 namespace TankTrouble
 {
+    const double Shell::RADIUS = 2.5;
     Shell::Shell(const util::Vec& p, double angle, int tankId):
         Object(p, angle, BLACK, util::Id::getShellId()),
         _tankId(tankId),

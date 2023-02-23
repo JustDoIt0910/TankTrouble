@@ -37,7 +37,7 @@ namespace TankTrouble
 
             static PosInfo invalid() {return PosInfo{util::Vec(DBL_MAX, DBL_MAX), DBL_MAX};}
 
-            static bool isValid(const PosInfo& p) {return (p.pos.x() != DBL_MAX && p.pos.y() != DBL_MAX && p.angle != p.pos.x() != DBL_MAX);}
+            static bool isValid(const PosInfo& p) {return (p.pos.x() != DBL_MAX && p.pos.y() != DBL_MAX && p.angle != DBL_MAX);}
 
             util::Vec pos;
             double angle;

@@ -16,7 +16,10 @@ namespace TankTrouble
         {
             Forward, Backward, RotateCW, RotateCCW,
             StopForward, StopBackward, StopRotateCW, StopRotateCCW,
-            Fire
+            Fire,
+            //testing
+            SmithRotateCW,
+            SmithStopRotateCW
         };
 
         explicit ControlEvent(Operation op);

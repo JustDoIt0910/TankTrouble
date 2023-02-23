@@ -7,6 +7,7 @@
 #include "util/Math.h"
 #include "util/Id.h"
 #include "event/ControlEvent.h"
+#include "event/StrategyUpdateEvent.h"
 #include "Tank.h"
 #include "Shell.h"
 #include "smithAI/AgentSmith.h"
@@ -27,12 +28,15 @@ namespace TankTrouble
         snapshot(new ObjectList),
         tankNum(0),
         globalSteps(0),
-        smith(new AgentSmith(this))
+        smith(new AgentSmith(this)),
+        prev(AgentSmith::BallisticSegment::invalid())
     {
         initBlocks(45);
-        std::unique_ptr<Object> tank(new Tank(util::Vec(100, 100), 90.0, RED));
+        std::unique_ptr<Object> tank(new Tank(util::Vec(270, 220), 90.0, RED));
         objects[tank->id()] = std::move(tank);
-        tankNum += 1;
+        std::unique_ptr<Object> smithTank(new Tank(util::Vec(270, 230), 180.0, GREEN));
+        objects[smithTank->id()] = std::move(smithTank);
+        tankNum += 2;
     }
 
     Controller::~Controller()
@@ -58,16 +62,27 @@ namespace TankTrouble
             started = true;
             cv.notify_all();
         }
-        auto* event = new ControlEvent;
-        loop.addEventListener(event, [this](ev::Event* event){this->controlEventHandler(event);});
+
+        auto* controlEvent = new ControlEvent;
+        auto* strategyUpdateEvent = new StrategyUpdateEvent;
+        loop.addEventListener(controlEvent,
+                              [this](ev::Event* event){this->controlEventHandler(event);});
+        loop.addEventListener(strategyUpdateEvent,
+                              [this](ev::Event* event){this->dodgeStrategyUpdateHandler(event);});
+
         loop.runEvery(0.02, [this]{this->moveAll();});
 
-        loop.runEvery(2.0, [this] () -> void {
-            AgentSmith::PredictingShellList shells;
-            for(const auto& entry: objects)
-                if(entry.second->type() == OBJ_SHELL)
-                    shells[entry.first] = entry.second->getCurrentPosition();
+        loop.runEvery(0.2, [this] () -> void {
+            if(objects.find(2) == objects.end()) return;
+            Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+            AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithTank->getCurrentPosition());
+            smith->ballisticsPredict(shells, globalSteps);
+        });
 
+        loop.runEvery(0.1, [this]() -> void {
+            if(objects.find(2) == objects.end()) return;
+            Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+            smith->getDodgeStrategy(smithTank->getCurrentPosition(), globalSteps);
         });
 
         loop.loop();
@@ -102,17 +117,27 @@ namespace TankTrouble
         }
     }
 
+    void Controller::dodgeStrategyUpdateHandler(ev::Event* event)
+    {
+        auto* de = dynamic_cast<StrategyUpdateEvent*>(event);
+        smithDodgeStrategy = de->getStrategy();
+    }
+
     void Controller::fire(Tank *tank)
     {
         if(tank->remainShells() == 0)
             return;
         std::unique_ptr<Object> shell(tank->makeShell());
         objects[shell->id()] = std::move(shell);
+
+        if(objects.find(2) == objects.end()) return;
+        Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+        AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithTank->getCurrentPosition());
+        smith->ballisticsPredict(shells, globalSteps);
     }
 
     void Controller::moveAll()
     {
-        ev::Timestamp before = ev::Timestamp::now();
         globalSteps++;
         deletedObjs.clear();
         for(auto& entry: objects)
@@ -132,7 +157,7 @@ namespace TankTrouble
                 }
                 else if(id)
                 {
-                    if(id != shell->tankId() || shell->ttl() < Shell::INITIAL_TTL)
+                    if((id != shell->tankId() || shell->ttl() < Shell::INITIAL_TTL))
                     {
                         deletedObjs.push_back(id);
                         deletedObjs.push_back(shell->id());
@@ -153,9 +178,11 @@ namespace TankTrouble
             else
             {
                 auto* tank = dynamic_cast<Tank*>(obj.get());
-                int id = checkTankBlockCollision(tank, cur, next);
+                int id = checkTankBlockCollision(cur, next);
                 if(id)
                     obj->resetNextPosition(cur);
+                if(tank->id() == 2)
+                    smithDodgeStrategy.update(tank, globalSteps);
             }
             obj->moveToNextPosition();
         }
@@ -176,8 +203,6 @@ namespace TankTrouble
                 (*snapshot)[obj->id()] = std::unique_ptr<Object>(
                         new Shell(*dynamic_cast<Shell*>(obj.get())));
         }
-        ev::Timestamp after = ev::Timestamp::now();
-        //std::cout << after - before << std::endl;
     }
 
     int Controller::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
@@ -212,16 +237,14 @@ namespace TankTrouble
                 break;
             }
         }
-        for(int blockId: possibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())][dir])
+        for(int blockId: shellPossibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())][dir])
         {
             Block block = blocks[blockId];
             util::Vec v1 = block.isHorizon() ? util::Vec(1, 0) : util::Vec(0, 1);
             util::Vec v2 = block.isHorizon() ? util::Vec(0, 1) : util::Vec(1, 0);
             if(util::checkRectCircleCollision(v1, v2, block.center(), nextPos.pos,
                                               block.width(), block.height(), Shell::RADIUS))
-            {
                 return blockId;
-            }
         }
         return 0;
     }
@@ -235,25 +258,22 @@ namespace TankTrouble
             Tank* tank = dynamic_cast<Tank*>(objects[id].get());
             auto axis = util::getUnitVectors(tank->getCurrentPosition().angle);
             if(util::checkRectCircleCollision(axis.first, axis.second, tank->getCurrentPosition().pos, nextPos.pos,
-                                              Tank::TANK_WIDTH, Tank::TANK_HEIGHT, Shell::RADIUS))
+                                              Tank::TANK_WIDTH - 2, Tank::TANK_HEIGHT - 2, Shell::RADIUS))
                 return id;
         }
         return 0;
     }
 
-    int Controller::checkTankBlockCollision(Tank* tank, const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int Controller::checkTankBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
-        for (int i = 0; i < 7; ++i)
+        for(int blockId: tankPossibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())])
         {
-            for(int blockId: possibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())][i])
-            {
-                Block block = blocks[blockId];
-                double blockAngle = block.isHorizon() ? 0.0 : 90.0;
-                if(util::checkRectRectCollision(blockAngle, block.center(), block.width(), block.height(),
-                                                nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
-                    return blockId;
-            }
+            Block block = blocks[blockId];
+            double blockAngle = block.isHorizon() ? 0.0 : 90.0;
+            if(util::checkRectRectCollision(blockAngle, block.center(), block.width(), block.height(),
+                                            nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+                return blockId;
         }
         if(util::checkRectRectCollision(90.0, leftBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
                 util::checkRectRectCollision(90.0, rightBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
@@ -304,38 +324,44 @@ namespace TankTrouble
                 if(gx >= 0)
                 {
                     //左上
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     //左下
                     gy += 1;
-                    possibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     gy -= 1;
                 }
                 //上中
                 gx += 1;
-                possibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 //下中
                 gy += 1;
-                possibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 gy -= 1; gx += 1;
                 if(gx < HORIZON_GRID_NUMBER)
                 {
                     //右上
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     //右下
                     gy += 1;
-                    possibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 }
             }
             else
@@ -343,38 +369,44 @@ namespace TankTrouble
                 if(gy >= 0)
                 {
                     //左上
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     //右上
                     gx += 1;
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     gx -= 1;
                 }
                 //左中
                 gy += 1;
-                possibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_RIGHT].push_back(block.id());
+                tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 //右中
                 gx += 1;
-                possibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
-                possibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                shellPossibleCollisionBlocks[gx][gy][DOWNWARDS_LEFT].push_back(block.id());
+                tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 gx -= 1; gy += 1;
                 if(gy < VERTICAL_GRID_NUMBER)
                 {
                     //左下
-                    possibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][RIGHT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS_RIGHT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                     //右下
                     gx += 1;
-                    possibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
-                    possibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][LEFT].push_back(block.id());
+                    shellPossibleCollisionBlocks[gx][gy][UPWARDS_LEFT].push_back(block.id());
+                    tankPossibleCollisionBlocks[gx][gy].push_back(block.id());
                 }
             }
         }

@@ -12,7 +12,7 @@ namespace TankTrouble
 {
     Tank::Tank(const util::Vec& p, double angle, const Color& c):
         Object(p, angle, c, util::Id::getTankId()),
-        remainBullets(5)
+        remainBullets(10)
     {
         recalculate();
     }
@@ -22,6 +22,12 @@ namespace TankTrouble
         auto corners = util::getCornerVec(posInfo.pos, posInfo.angle,
                                           Tank::TANK_WIDTH, Tank::TANK_HEIGHT);
         topLeft = corners[0]; topRight = corners[1]; bottomLeft = corners[2]; bottomRight = corners[3];
+    }
+
+    void Tank::stop()
+    {
+        movingStatus = 0;
+        movingStatus |= MOVING_STATIONARY;
     }
 
     void Tank::forward(bool enable)
@@ -63,6 +69,14 @@ namespace TankTrouble
         }
         else movingStatus &= ~ROTATING_CCW;
     }
+
+    bool Tank::isForwarding() {return movingStatus & MOVING_FORWARD;}
+
+    bool Tank::isBackwarding() {return movingStatus & MOVING_BACKWARD;}
+
+    bool Tank::isRotatingCW() {return movingStatus & ROTATING_CW;}
+
+    bool Tank::isRotatingCCW() {return movingStatus & ROTATING_CCW;}
 
     void Tank::draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
