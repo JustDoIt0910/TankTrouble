@@ -17,7 +17,8 @@
 #include "Block.h"
 #include "defs.h"
 #include "smithAI/DodgeStrategy.h"
-#include "smithAI/AgentSmith.h"
+#include "smithAI/ContactStrategy.h"
+#include "smithAI/AStar.h"
 
 #define UPWARDS             0
 #define UPWARDS_LEFT        1
@@ -30,7 +31,7 @@
 
 namespace TankTrouble
 {
-    //class AgentSmith;
+    class AgentSmith;
 
     class Controller {
     public:
@@ -51,7 +52,7 @@ namespace TankTrouble
         void run();
         void moveAll();
         void controlEventHandler(ev::Event* event);
-        void dodgeStrategyUpdateHandler(ev::Event* event);
+        void strategyUpdateHandler(ev::Event* event);
         void fire(Tank* tank);
 
         int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
@@ -62,6 +63,8 @@ namespace TankTrouble
         Object::PosInfo getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId);
 
         void initBlocks(int num);
+        bool getSmithPosition(Object::PosInfo& pos);
+        bool getMyPosition(Object::PosInfo& pos);
 
         ObjectList objects;
         ObjectListPtr snapshot;
@@ -78,8 +81,11 @@ namespace TankTrouble
         uint64_t globalSteps;
 
         friend class AgentSmith;
+        friend class DodgeStrategy;
+        friend class ContactStrategy;
         std::unique_ptr<AgentSmith> smith;
-        DodgeStrategy smithDodgeStrategy;
+        std::unique_ptr<DodgeStrategy> smithDodgeStrategy;
+        std::unique_ptr<ContactStrategy> smithContactStrategy;
     };
 }
 

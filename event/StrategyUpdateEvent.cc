@@ -6,9 +6,9 @@
 
 namespace TankTrouble
 {
-    StrategyUpdateEvent::StrategyUpdateEvent(const DodgeStrategy& strategy):
+    StrategyUpdateEvent::StrategyUpdateEvent(Strategy* strategy):
         ev::Event("StrategyUpdateEvent", 2),
         strategy(strategy){}
 
-    DodgeStrategy StrategyUpdateEvent::getStrategy(){return strategy;}
+    Strategy* StrategyUpdateEvent::getStrategy(){return strategy;}
 }

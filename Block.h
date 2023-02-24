@@ -21,6 +21,8 @@ namespace TankTrouble
         [[nodiscard]] int height() const;
         [[nodiscard]] int width() const;
         [[nodiscard]] int id() const;
+        [[nodiscard]] util::Vec start() const;
+        [[nodiscard]] util::Vec end() const;
         [[nodiscard]] std::pair<util::Vec, util::Vec> border(int n) const;
         const static int BLOCK_WIDTH = 4;
 

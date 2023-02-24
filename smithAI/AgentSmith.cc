@@ -179,7 +179,7 @@ namespace TankTrouble
         int maxDodging = 0;
         int threatNum = std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size()));
         bool stop = false;
-        for(int s = 0; s < 50 && !stop; s++, step++)
+        for(int s = 0; s < 100 && !stop; s++, step++)
         {
             tryPos = Tank::getNextPosition(tryPos, direction, 0, 0);
             CheckResult check = checkFeasible(step, tryPos);
@@ -208,7 +208,8 @@ namespace TankTrouble
         util::Vec v1 = util::getUnitVector(segment.angle);
         util::Vec vt = util::getUnitVector(tryPos.angle);
         double angle = util::angleBetweenVectors(v1, vt);
-        bool pointingToSameSide = (witchSide == RIGHT && v1.cross(vt) > 0) || (witchSide == LEFT && v1.cross(vt) < 0);
+        bool pointingToSameSide = (witchSide == RIGHT_SIDE && v1.cross(vt) > 0) ||
+                (witchSide == LEFT_SIDE && v1.cross(vt) < 0);
         bool stop = false;
         int direction = pointingToSameSide ? MOVING_FORWARD : MOVING_BACKWARD;
         DodgeStrategy::DodgeOperation moveOp = pointingToSameSide ?
@@ -223,14 +224,14 @@ namespace TankTrouble
         if(stop) return strategy;
         uint64_t step = globalSteps;
         int cnt = 0;
-        util::Vec vn = util::getUnitVector(static_cast<int>(tryPos.angle + 12) % 360);
+        util::Vec vn = util::getUnitVector(static_cast<int>(tryPos.angle + 8) % 360);
         while(util::angleBetweenVectors(v1, vn) > 0.0 && util::angleBetweenVectors(v1, vn) < 180.0)
         {
             step++; cnt++;
             tryPos.angle = static_cast<int>(tryPos.angle + 4) % 360;
             if(checkFeasible(step, tryPos) == UNFEASIBLE)
                 break;
-            if(cnt % 3) continue;
+            if(cnt % 2) continue;
             if(tryMovingStraight(step, direction, tryPos, &s))
             {
                 strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CCW, step - globalSteps, 0});
@@ -239,19 +240,19 @@ namespace TankTrouble
                 stop = true;
                 break;
             }
-            vn = util::getUnitVector(static_cast<int>(tryPos.angle + 12) % 360);
+            vn = util::getUnitVector(static_cast<int>(tryPos.angle + 8) % 360);
         }
         if(stop) return strategy;
         step = globalSteps; tryPos = cur; cnt = 0;
         if(angle == 0) tryPos.angle = static_cast<int>(tryPos.angle + 4) % 360;
-        vn = util::getUnitVector(static_cast<int>(360 + tryPos.angle - 12) % 360);
+        vn = util::getUnitVector(static_cast<int>(360 + tryPos.angle - 8) % 360);
         while(util::angleBetweenVectors(v1, vn) > 0.0 && util::angleBetweenVectors(v1, vn) < 180.0)
         {
             step++; cnt++;
             tryPos.angle = static_cast<int>(360 + tryPos.angle - 4) % 360;
             if(checkFeasible(step, tryPos) == UNFEASIBLE)
                 break;
-            if(cnt % 3) continue;
+            if(cnt % 2) continue;
             if(tryMovingStraight(step, direction, tryPos, &s))
             {
                 strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CW, step - globalSteps, 0});
@@ -259,7 +260,7 @@ namespace TankTrouble
                 std::cout << strategy;
                 break;
             }
-            vn = util::getUnitVector(static_cast<int>(360 + tryPos.angle - 12) % 360);
+            vn = util::getUnitVector(static_cast<int>(360 + tryPos.angle - 8) % 360);
         }
         if(!strategy.isValid())
         {
@@ -280,15 +281,15 @@ namespace TankTrouble
             DodgeStrategy strategy;
             if(v1.cross(v2) >= 0)
             {
-                strategy = dodgeToSide(globalSteps, smithPos, RIGHT);
+                strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE);
                 if(!strategy.isValid())
-                    strategy = dodgeToSide(globalSteps, smithPos, LEFT);
+                    strategy = dodgeToSide(globalSteps, smithPos, LEFT_SIDE);
             }
             else
             {
-                strategy = dodgeToSide(globalSteps, smithPos, LEFT);
+                strategy = dodgeToSide(globalSteps, smithPos, LEFT_SIDE);
                 if(!strategy.isValid())
-                    strategy = dodgeToSide(globalSteps, smithPos, RIGHT);
+                    strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE);
             }
             if(strategy.isValid())
                 strategies[1].push_back(strategy);
@@ -300,7 +301,7 @@ namespace TankTrouble
         ev::Timestamp before = ev::Timestamp::now();
         bool hasStrategy = false;
         bool stop = false;
-        DodgeStrategy strategy;
+        auto* strategy = new DodgeStrategy;
         smithPos = pos;
         strategies.clear();
         potentialThreats.clear();
@@ -338,7 +339,7 @@ namespace TankTrouble
         if(!strategies[threatNum].empty())
         {
             sort(strategies[threatNum].begin(), strategies[threatNum].end());
-            strategy = strategies[threatNum][0];
+            *strategy = strategies[threatNum][0];
             hasStrategy = true;
             stop = true;
         }
@@ -347,7 +348,7 @@ namespace TankTrouble
             tryMoving(globalSteps);
             if(!strategies[threatNum].empty())
             {
-                strategy = strategies[threatNum][0];
+                *strategy = strategies[threatNum][0];
                 hasStrategy = true;
                 stop = true;
             }
@@ -359,5 +360,22 @@ namespace TankTrouble
         }
         ev::Timestamp after = ev::Timestamp::now();
         std::cout << (after - before) / 1000.0 << std::endl;
+    }
+
+    void AgentSmith::initAStar(AStar::BlockList* blocks) {aStar->init(blocks);}
+
+    void AgentSmith::findAttackRoute(const Object::PosInfo& smith, const Object::PosInfo& enemy)
+    {
+        int smithX = MAP_REAL_X_TO_A_STAR_X(smith.pos.x());
+        int smithY = MAP_REAL_Y_TO_A_STAR_Y(smith.pos.y());
+        int enemyX = MAP_REAL_X_TO_A_STAR_X(enemy.pos.x());
+        int enemyY = MAP_REAL_Y_TO_A_STAR_Y(enemy.pos.y());
+        AStar::AStarResult route = aStar->findRoute(smithX, smithY, enemyX, enemyY);
+        if(!route.empty())
+        {
+            auto* strategy = new ContactStrategy(route);
+            auto* event = new StrategyUpdateEvent(strategy);
+            ctl->dispatchEvent(event);
+        }
     }
 }

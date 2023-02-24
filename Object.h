@@ -22,8 +22,8 @@ namespace TankTrouble
     typedef uint8_t MovingStatus;
     typedef std::vector<double> Color;
     const static Color BLACK = {0, 0, 0};
-    const static Color RED = {1.0, 0, 0};
-    const static Color GREEN = {0, 1.0, 0};
+    const static Color RED = {1.0, 0.3, 0.3};
+    const static Color GREY = {0.3, 0.3, 0.3};
 
     class Object {
     public:
@@ -37,7 +37,8 @@ namespace TankTrouble
 
             static PosInfo invalid() {return PosInfo{util::Vec(DBL_MAX, DBL_MAX), DBL_MAX};}
 
-            static bool isValid(const PosInfo& p) {return (p.pos.x() != DBL_MAX && p.pos.y() != DBL_MAX && p.angle != DBL_MAX);}
+            static bool isValid(const PosInfo& p)
+            {return (p.pos.x() != DBL_MAX && p.pos.y() != DBL_MAX && p.angle != DBL_MAX);}
 
             util::Vec pos;
             double angle;

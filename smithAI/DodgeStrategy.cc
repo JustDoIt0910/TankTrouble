@@ -25,11 +25,11 @@ namespace TankTrouble
 
     bool DodgeStrategy::operator<(const DodgeStrategy& strategy) const{return needStep < strategy.needStep;}
 
-    void DodgeStrategy::update(Tank* tank, uint64_t globalStep)
+    bool DodgeStrategy::update(Controller* ctl, Tank* tank, uint64_t globalStep)
     {
         tank->stop();
         if(cmds.empty())
-            return;
+            return false;
         DodgeCommand cmd = cmds.front();
         cmds.pop_front();
         if(cmd.op == DODGE_CMD_ROTATE_CW)
@@ -84,5 +84,6 @@ namespace TankTrouble
                 cmds.push_front(cmd);
             }
         }
+        return true;
     }
 }

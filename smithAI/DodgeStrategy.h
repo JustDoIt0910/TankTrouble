@@ -5,16 +5,15 @@
 #ifndef TANK_TROUBLE_DODGE_STRATEGY_H
 #define TANK_TROUBLE_DODGE_STRATEGY_H
 #include <deque>
-#include <stdint.h>
 #include <string>
 #include <iostream>
 #include "util/Vec.h"
+#include "Strategy.h"
 
 namespace TankTrouble
 {
-    class Tank;
-
-    class DodgeStrategy
+    class Controller;
+    class DodgeStrategy : public Strategy
     {
     public:
         enum DodgeOperation {DODGE_CMD_MOVE_FORWARD, DODGE_CMD_MOVE_BACKWARD,
@@ -38,12 +37,13 @@ namespace TankTrouble
                 return names[this->op];
             }
         };
-        explicit DodgeStrategy(uint64_t needStep): needStep(needStep){}
+        explicit DodgeStrategy(uint64_t needStep):
+            Strategy(Strategy::Dodge), needStep(needStep){}
         DodgeStrategy(): DodgeStrategy(0){}
         void addCmd(const DodgeCommand& cmd);
         bool isEmpty();
         void popBack();
-        void update(Tank* tank, uint64_t globalStep);
+        bool update(Controller* ctl, Tank* tank, uint64_t globalStep) override;
         bool operator<(const DodgeStrategy& strategy) const;
         DodgeStrategy& operator=(const DodgeStrategy& strategy) = default;
         bool isValid();

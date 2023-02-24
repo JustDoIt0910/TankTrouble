@@ -7,10 +7,12 @@
 #include <utility>
 #include <vector>
 #include <mutex>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include "util/Vec.h"
 #include "Object.h"
+#include "AStar.h"
 #include "DodgeStrategy.h"
 
 #define LEFT_SIDE 0
@@ -31,14 +33,20 @@ namespace TankTrouble
         const static int MAX_DODGING_SHELLS;
 
         explicit AgentSmith(Controller* ctl):
-            ctl(ctl), previousMostUrgent(BallisticSegment::invalid()),
-            currentMostUrgent(BallisticSegment::invalid()){}
+            ctl(ctl),
+            previousMostUrgent(BallisticSegment::invalid()),
+            currentMostUrgent(BallisticSegment::invalid()),
+            aStar(new AStar){}
 
         PredictingShellList getIncomingShells(const Object::PosInfo& smithPos);
 
         void ballisticsPredict(const PredictingShellList& shells, uint64_t globalSteps);
 
         void getDodgeStrategy(const Object::PosInfo& smithPos, uint64_t globalSteps);
+
+        void initAStar(AStar::BlockList* blocks);
+
+        void findAttackRoute(const Object::PosInfo& smith, const Object::PosInfo& enemy);
 
     private:
         typedef std::pair<uint64_t , util::Vec> KeyPoint;
@@ -92,6 +100,8 @@ namespace TankTrouble
         std::unordered_set<int> potentialThreats;
         BallisticSegment previousMostUrgent;
         BallisticSegment currentMostUrgent;
+
+        std::unique_ptr<AStar> aStar;
     };
 }
 

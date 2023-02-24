@@ -13,12 +13,12 @@ namespace TankTrouble
     class StrategyUpdateEvent : public ev::Event
     {
     public:
-        explicit StrategyUpdateEvent(const DodgeStrategy& strategy);
-        StrategyUpdateEvent(): StrategyUpdateEvent(DodgeStrategy(0)){}
-        DodgeStrategy getStrategy();
+        explicit StrategyUpdateEvent(Strategy* strategy);
+        StrategyUpdateEvent(): StrategyUpdateEvent(nullptr){}
+        Strategy* getStrategy();
 
     private:
-        DodgeStrategy strategy;
+        Strategy* strategy;
     };
 }
 #endif //TANK_TROUBLE_STRATEGY_UPDATE_EVENT_H

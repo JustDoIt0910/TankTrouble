@@ -18,7 +18,8 @@ set(TANK_TROUBLE_SRC main.cc
         smithAI/AgentSmith.cc
         smithAI/DodgeStrategy.cc
         event/StrategyUpdateEvent.cc
-        smithAI/AStar.cc)
+        smithAI/AStar.cc
+        smithAI/ContactStrategy.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)
@@ -32,4 +33,3 @@ link_directories(${GTKMM_LIBRARY_DIRS} ${EV_LIBRARY_DIRS})
 link_libraries(${GTKMM_LIBRARIES} reactor pthread)
 
 add_executable(TankTrouble ${TANK_TROUBLE_SRC})
-add_subdirectory(test)

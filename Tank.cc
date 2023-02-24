@@ -85,7 +85,7 @@ namespace TankTrouble
         cr->close_path();
         cr->fill();
 
-        cr->set_source_rgb(color[0] - 0.2, color[1], color[2]);
+        cr->set_source_rgb(color[0] - 0.3, color[1] - 0.3, color[2] - 0.3);
         cr->arc(posInfo.pos.x(), posInfo.pos.y(), 7, 0.0, 2 * M_PI);
         cr->fill();
 

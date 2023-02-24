@@ -60,11 +60,6 @@ namespace TankTrouble
         cr->save();
         View::drawRect(cr, BLACK, tl, tr, bl, br);
         cr->set_line_width(1.0);
-
-//        cr->set_font_size(20.0);
-//        cr->move_to(_center.x(), _center.y());
-//        cr->show_text(std::to_string(_id));
-
         cr->restore();
     }
 
@@ -75,6 +70,10 @@ namespace TankTrouble
     int Block::height() const {return _height;}
 
     int Block::width() const {return _width;}
+
+    util::Vec Block::start() const {return _start;}
+
+    util::Vec Block::end() const {return _end;}
 
     int Block::id() const {return  _id;}
 

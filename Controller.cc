@@ -32,9 +32,11 @@ namespace TankTrouble
         initBlocks(45);
         std::unique_ptr<Object> tank(new Tank(util::Vec(270, 220), 90.0, RED));
         objects[tank->id()] = std::move(tank);
-        std::unique_ptr<Object> smithTank(new Tank(util::Vec(270, 230), 180.0, GREEN));
+        std::unique_ptr<Object> smithTank(new Tank(util::Vec(270, 220), 180.0, GREY));
         objects[smithTank->id()] = std::move(smithTank);
         tankNum += 2;
+
+        smith->initAStar(&blocks);
     }
 
     Controller::~Controller()
@@ -66,25 +68,47 @@ namespace TankTrouble
         loop.addEventListener(controlEvent,
                               [this](ev::Event* event){this->controlEventHandler(event);});
         loop.addEventListener(strategyUpdateEvent,
-                              [this](ev::Event* event){this->dodgeStrategyUpdateHandler(event);});
+                              [this](ev::Event* event){this->strategyUpdateHandler(event);});
 
         loop.runEvery(0.02, [this]{this->moveAll();});
 
         loop.runEvery(0.2, [this] () -> void {
-            if(objects.find(2) == objects.end()) return;
-            Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
-            AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithTank->getCurrentPosition());
+            Object::PosInfo smithPos;
+            if(!getSmithPosition(smithPos)) return;
+            AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithPos);
             smith->ballisticsPredict(shells, globalSteps);
         });
 
         loop.runEvery(0.1, [this]() -> void {
-            if(objects.find(2) == objects.end()) return;
-            Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
-            smith->getDodgeStrategy(smithTank->getCurrentPosition(), globalSteps);
+            Object::PosInfo smithPos;
+            if(!getSmithPosition(smithPos)) return;
+            smith->getDodgeStrategy(smithPos, globalSteps);
+        });
+
+        loop.runEvery(1.0, [this] () -> void {
+            Object::PosInfo smithPos, myPos;
+            if(!getSmithPosition(smithPos) || !getMyPosition(myPos)) return;
+            smith->findAttackRoute(smithPos, myPos);
         });
 
         loop.loop();
         controlLoop = nullptr;
+    }
+
+    bool Controller::getSmithPosition(Object::PosInfo& pos)
+    {
+        if(objects.find(2) == objects.end()) return false;
+        Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+        pos = smithTank->getCurrentPosition();
+        return true;
+    }
+
+    bool Controller::getMyPosition(Object::PosInfo& pos)
+    {
+        if(objects.find(1) == objects.end()) return false;
+        Tank* me = dynamic_cast<Tank*>(objects[1].get());
+        pos = me->getCurrentPosition();
+        return true;
     }
 
     void Controller::dispatchEvent(ev::Event *event) {controlLoop->dispatchEvent(event);}
@@ -115,10 +139,14 @@ namespace TankTrouble
         }
     }
 
-    void Controller::dodgeStrategyUpdateHandler(ev::Event* event)
+    void Controller::strategyUpdateHandler(ev::Event* event)
     {
-        auto* de = dynamic_cast<StrategyUpdateEvent*>(event);
-        smithDodgeStrategy = de->getStrategy();
+        auto* updateEvent = dynamic_cast<StrategyUpdateEvent*>(event);
+        Strategy* strategy = updateEvent->getStrategy();
+        if(strategy->type() == Strategy::Dodge)
+            smithDodgeStrategy.reset(dynamic_cast<DodgeStrategy*>(strategy));
+        else
+            smithContactStrategy.reset(dynamic_cast<ContactStrategy*>(strategy));
     }
 
     void Controller::fire(Tank *tank)
@@ -138,9 +166,22 @@ namespace TankTrouble
     {
         globalSteps++;
         deletedObjs.clear();
+        static int danger = 0;
         for(auto& entry: objects)
         {
             std::unique_ptr<Object>& obj = entry.second;
+            if(obj->id() == 2)
+            {
+                auto* smithTank = dynamic_cast<Tank*>(obj.get());
+                if(smithDodgeStrategy)
+                {
+                    if(smithDodgeStrategy->update(this, smithTank, globalSteps))
+                        danger = 50;
+                    else danger = danger == 0 ? danger : danger - 1;
+                }
+                if(smithContactStrategy && !danger)
+                    smithContactStrategy->update(this, smithTank, globalSteps);
+            }
             Object::PosInfo next = obj->getNextPosition(0, 0);
             Object::PosInfo cur = obj->getCurrentPosition();
             bool countdown = false;
@@ -179,8 +220,6 @@ namespace TankTrouble
                 int id = checkTankBlockCollision(cur, next);
                 if(id)
                     obj->resetNextPosition(cur);
-                if(tank->id() == 2)
-                    smithDodgeStrategy.update(tank, globalSteps);
             }
             obj->moveToNextPosition();
         }
