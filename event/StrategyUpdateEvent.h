@@ -6,7 +6,7 @@
 #define TANK_TROUBLE_STRATEGY_UPDATE_EVENT_H
 
 #include "reactor/Event.h"
-#include "smithAI/DodgeStrategy.h"
+#include "smithAI/Strategy.h"
 
 namespace TankTrouble
 {

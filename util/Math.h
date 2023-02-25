@@ -15,6 +15,9 @@ namespace TankTrouble::util
 
     double deg2Rad(double deg);
 
+    //根据向量计算旋转角
+    double vector2Angle(const util::Vec& v);
+
     Vec polar2Cart(double theta, double p, Vec O = Vec(0, 0));
 
     //已知矩形中心点坐标，旋转角，宽高，求四个顶点坐标

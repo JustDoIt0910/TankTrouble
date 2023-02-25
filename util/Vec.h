@@ -15,6 +15,8 @@ namespace TankTrouble::util
         double operator*(const Vec& v) const;
         bool operator==(const Vec& v) const;
         Vec operator-(const Vec& v) const;
+        Vec operator+(const Vec& v) const;
+        Vec operator/(double d) const;
         [[nodiscard]] double norm() const;
         void swap(Vec& v);
         [[nodiscard]] double cross(const Vec& v) const;

@@ -26,29 +26,8 @@ namespace TankTrouble
     class AgentSmith
     {
     public:
+        typedef std::pair<int, Object::PosInfo> PredictingShell;
         typedef std::unordered_map<int, Object::PosInfo> PredictingShellList;
-
-        const static int MAX_PREDICT_STEP;
-        const static int THREATENED_RANGE;
-        const static int MAX_DODGING_SHELLS;
-
-        explicit AgentSmith(Controller* ctl):
-            ctl(ctl),
-            previousMostUrgent(BallisticSegment::invalid()),
-            currentMostUrgent(BallisticSegment::invalid()),
-            aStar(new AStar){}
-
-        PredictingShellList getIncomingShells(const Object::PosInfo& smithPos);
-
-        void ballisticsPredict(const PredictingShellList& shells, uint64_t globalSteps);
-
-        void getDodgeStrategy(const Object::PosInfo& smithPos, uint64_t globalSteps);
-
-        void initAStar(AStar::BlockList* blocks);
-
-        void findAttackRoute(const Object::PosInfo& smith, const Object::PosInfo& enemy);
-
-    private:
         typedef std::pair<uint64_t , util::Vec> KeyPoint;
         struct BallisticSegment
         {
@@ -68,10 +47,35 @@ namespace TankTrouble
             static BallisticSegment invalid(){return {-1, -1, KeyPoint(), KeyPoint(), 0, 0, 0};}
             [[nodiscard]] bool isValid() const {return shellId != -1;}
         };
-
         typedef std::vector<BallisticSegment> Ballistic;
         typedef std::unordered_map<int, Ballistic> Ballistics;
 
+        const static int MAX_PREDICT_STEP;
+        const static int THREATENED_RANGE;
+        const static int MAX_DODGING_SHELLS;
+        const static int ATTACKING_RANGE;
+
+        explicit AgentSmith(Controller* ctl):
+            ctl(ctl),
+            previousMostUrgent(BallisticSegment::invalid()),
+            currentMostUrgent(BallisticSegment::invalid()),
+            aStar(new AStar),
+            prevFireTime(-1000){}
+
+        PredictingShellList getIncomingShells(const Object::PosInfo& smithPos);
+
+        void ballisticsPredict(const PredictingShellList& shells, uint64_t globalSteps);
+
+        void ballisticPredict(PredictingShell shell, Ballistic& ballistic, uint64_t globalSteps);
+
+        void getDodgeStrategy(const Object::PosInfo& smithPos, uint64_t globalSteps);
+
+        void initAStar(AStar::BlockList* blocks);
+
+        void attack(const Object::PosInfo& smith, const Object::PosInfo& enemy,
+                    uint64_t globalSteps);
+
+    private:
         static bool segmentCmp(const BallisticSegment& s1, const BallisticSegment& s2);
 
         Object::PosInfo getShellPosition(int id, uint64_t globalSteps);
@@ -83,12 +87,15 @@ namespace TankTrouble
 
         void tryMoving(uint64_t globalSteps);
 
-        DodgeStrategy dodgeToSide(uint64_t globalSteps, const Object::PosInfo& cur, int whichSide);
+        DodgeStrategy dodgeToSide(uint64_t globalSteps, const Object::PosInfo& cur,
+                                  int whichSide, int angleGran);
 
         int tryMovingStraight(uint64_t globalSteps, int direction,
                               const Object::PosInfo& cur, uint64_t * takingSteps);
 
         bool danger(int shellId, const Object::PosInfo& cur, uint64_t step);
+
+        Object::PosInfo tryAiming(const Object::PosInfo& smith, const Object::PosInfo& enemy);
 
         Controller* ctl;
         Ballistics ballistics;
@@ -102,6 +109,7 @@ namespace TankTrouble
         BallisticSegment currentMostUrgent;
 
         std::unique_ptr<AStar> aStar;
+        uint64_t prevFireTime;
     };
 }
 

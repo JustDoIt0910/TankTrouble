@@ -21,7 +21,6 @@
 #define VERTICAL_A_STAR_GRID_NUMBER     (A_STAR_GRID_PER_GRID * VERTICAL_GRID_NUMBER)
 #define MAP_REAL_X_TO_A_STAR_X(rx)      (static_cast<int>((rx) / A_STAR_GRID_SIZE))
 #define MAP_REAL_Y_TO_A_STAR_Y(ry)      (static_cast<int>((ry) / A_STAR_GRID_SIZE))
-//test
 #define MAP_A_STAR_X_TO_REAL_X(ax)      static_cast<double>((ax) * A_STAR_GRID_SIZE + A_STAR_GRID_SIZE / 2)
 #define MAP_A_STAR_Y_TO_REAL_Y(ay)      static_cast<double>((ay) * A_STAR_GRID_SIZE + A_STAR_GRID_SIZE / 2)
 

@@ -65,7 +65,7 @@ namespace TankTrouble
 
     bool Block::isHorizon() const {return horizon;}
 
-    util::Vec Block::center() {return _center;}
+    util::Vec Block::center() const {return _center;}
 
     int Block::height() const {return _height;}
 

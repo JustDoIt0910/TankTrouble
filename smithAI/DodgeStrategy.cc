@@ -27,11 +27,14 @@ namespace TankTrouble
 
     bool DodgeStrategy::update(Controller* ctl, Tank* tank, uint64_t globalStep)
     {
-        tank->stop();
+        bool isForwarding = tank->isForwarding();
+        bool isBackwarding = tank->isBackwarding();
         if(cmds.empty())
             return false;
+        tank->stop();
         DodgeCommand cmd = cmds.front();
         cmds.pop_front();
+        Object::PosInfo cur = tank->getCurrentPosition();
         if(cmd.op == DODGE_CMD_ROTATE_CW)
         {
             if(cmd.targetStep == 0)
@@ -60,6 +63,14 @@ namespace TankTrouble
         }
         else if(cmd.op == DODGE_CMD_MOVE_FORWARD)
         {
+            if(isForwarding && cur.pos == prevPos.pos)
+            {
+                cmds.clear();
+                cmd.op = DODGE_CMD_MOVE_BACKWARD;
+                cmd.targetStep = globalStep + 10;
+                cmds.push_front(cmd);
+                tank->backward(true);
+            }
             if(cmd.targetStep == 0)
             {
                 cmd.targetStep = globalStep + cmd.step;
@@ -73,6 +84,14 @@ namespace TankTrouble
         }
         else
         {
+            if(isBackwarding && cur.pos == prevPos.pos)
+            {
+                cmds.clear();
+                cmd.op = DODGE_CMD_MOVE_FORWARD;
+                cmd.targetStep = globalStep + 10;
+                cmds.push_front(cmd);
+                tank->forward(true);
+            }
             if(cmd.targetStep == 0)
             {
                 cmd.targetStep = globalStep + cmd.step;
@@ -84,6 +103,7 @@ namespace TankTrouble
                 cmds.push_front(cmd);
             }
         }
+        prevPos = cur;
         return true;
     }
 }

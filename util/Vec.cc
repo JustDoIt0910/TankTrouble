@@ -15,6 +15,10 @@ namespace TankTrouble::util
 
     Vec Vec::operator-(const Vec& v) const {return Vec(_x - v.x(), _y - v.y());}
 
+    Vec Vec::operator+(const Vec& v) const {return Vec(_x + v.x(), _y + v.y());}
+
+    Vec Vec::operator/(double d) const {return Vec(_x / d, _y / d);}
+
     double Vec::norm() const {return sqrt(pow(_x, 2) + pow(_y, 2));}
 
     double Vec::cross(const Vec &v) const {return _x * v.y() - v.x() * _y;}

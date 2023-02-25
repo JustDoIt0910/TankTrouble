@@ -21,7 +21,7 @@ namespace TankTrouble
         int nextX = route[next].first;
         int nextY = route[next].second;
         util::Vec gridCenter(MAP_A_STAR_X_TO_REAL_X(nextX), MAP_A_STAR_Y_TO_REAL_Y(nextY));
-        if(util::distanceOfTwoPoints(tankPos.pos, gridCenter) < 10)
+        if(util::distanceOfTwoPoints(tankPos.pos, gridCenter) < 5)
             next++;
         util::Vec vn = gridCenter - tankPos.pos;
         util::Vec vt = util::getUnitVector(tankPos.angle);

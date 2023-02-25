@@ -51,14 +51,6 @@ namespace TankTrouble
             auto* event = new ControlEvent(ControlEvent::Fire);
             ctl->dispatchEvent(event);
         }
-        //testing
-        else if(!KeyDPressed && key_event->keyval == GDK_KEY_d)
-        {
-            KeyDPressed = true;
-            auto* event = new ControlEvent(ControlEvent::SmithRotateCW);
-            ctl->dispatchEvent(event);
-        }
-
         return true;
     }
 
@@ -86,13 +78,6 @@ namespace TankTrouble
         {
             KeyRightPressed = false;
             auto* event = new ControlEvent(ControlEvent::StopRotateCW);
-            ctl->dispatchEvent(event);
-        }
-        //testing
-        else if(key_event->keyval == GDK_KEY_d)
-        {
-            KeyDPressed = false;
-            auto* event = new ControlEvent(ControlEvent::SmithStopRotateCW);
             ctl->dispatchEvent(event);
         }
         else if(key_event->keyval == GDK_KEY_space) {spacePressed = false;}

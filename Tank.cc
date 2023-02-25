@@ -12,7 +12,7 @@ namespace TankTrouble
 {
     Tank::Tank(const util::Vec& p, double angle, const Color& c):
         Object(p, angle, c, util::Id::getTankId()),
-        remainBullets(10)
+        remainBullets(5)
     {
         recalculate();
     }

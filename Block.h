@@ -17,7 +17,7 @@ namespace TankTrouble
         Block(int id, const util::Vec& start, const util::Vec& end);
         void draw(const Cairo::RefPtr<Cairo::Context>& cr);
         [[nodiscard]] bool isHorizon() const;
-        [[nodiscard]] util::Vec center();
+        [[nodiscard]] util::Vec center() const;
         [[nodiscard]] int height() const;
         [[nodiscard]] int width() const;
         [[nodiscard]] int id() const;

@@ -18,6 +18,7 @@
 #include "defs.h"
 #include "smithAI/DodgeStrategy.h"
 #include "smithAI/ContactStrategy.h"
+#include "smithAI/AttackStrategy.h"
 #include "smithAI/AStar.h"
 
 #define UPWARDS             0
@@ -47,6 +48,7 @@ namespace TankTrouble
         ObjectListPtr getObjects();
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
+
 
     private:
         void run();
@@ -83,9 +85,11 @@ namespace TankTrouble
         friend class AgentSmith;
         friend class DodgeStrategy;
         friend class ContactStrategy;
+        friend class AttackStrategy;
         std::unique_ptr<AgentSmith> smith;
         std::unique_ptr<DodgeStrategy> smithDodgeStrategy;
         std::unique_ptr<ContactStrategy> smithContactStrategy;
+        std::unique_ptr<AttackStrategy> smithAttackStrategy;
     };
 }
 

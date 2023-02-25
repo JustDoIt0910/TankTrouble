@@ -19,7 +19,8 @@ set(TANK_TROUBLE_SRC main.cc
         smithAI/DodgeStrategy.cc
         event/StrategyUpdateEvent.cc
         smithAI/AStar.cc
-        smithAI/ContactStrategy.cc)
+        smithAI/ContactStrategy.cc
+        smithAI/AttackStrategy.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)

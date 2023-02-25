@@ -16,6 +16,13 @@ namespace TankTrouble::util
 
     double deg2Rad(double deg){return deg * M_PI / 180;}
 
+    double vector2Angle(const util::Vec& v)
+    {
+        double rad = atan2(-v.y(), v.x());
+        double deg = rad > 0 ? rad2Deg(rad) : 360 + rad2Deg(rad);
+        return deg == 360 ? 0 : deg;
+    }
+
     Vec polar2Cart(double theta, double p, Vec O)
     {
         double x = O.x() + cos(deg2Rad(theta)) * p;

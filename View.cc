@@ -13,7 +13,7 @@ namespace TankTrouble
     {
         Glib::signal_timeout().connect(
                 sigc::mem_fun(*this, &View::on_timeout),
-                20);
+                10);
     }
 
     static void drawOutline(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -29,23 +29,35 @@ namespace TankTrouble
     }
 
     //test
-//    void drawAStarGrid(const Cairo::RefPtr<Cairo::Context>& cr)
-//    {
-//        for(int i = 0; i < VERTICAL_A_STAR_GRID_NUMBER - 1; i++)
-//        {
-//            cr->move_to(0, (i + 1) * A_STAR_GRID_SIZE);
-//            cr->line_to(WINDOW_WIDTH - 1, (i + 1) * A_STAR_GRID_SIZE);
-//        }
-//        for(int i = 0; i < HORIZON_A_STAR_GRID_NUMBER - 1; i++)
-//        {
-//            cr->move_to((i + 1) * A_STAR_GRID_SIZE, 0);
-//            cr->line_to((i + 1) * A_STAR_GRID_SIZE, WINDOW_HEIGHT - 1);
-//        }
-//        cr->stroke();
-//    }
+    void drawAStarGrid(const Cairo::RefPtr<Cairo::Context>& cr)
+    {
+        for(int i = 0; i < VERTICAL_A_STAR_GRID_NUMBER - 1; i++)
+        {
+            cr->move_to(0, (i + 1) * A_STAR_GRID_SIZE);
+            cr->line_to(WINDOW_WIDTH - 1, (i + 1) * A_STAR_GRID_SIZE);
+        }
+        for(int i = 0; i < HORIZON_A_STAR_GRID_NUMBER - 1; i++)
+        {
+            cr->move_to((i + 1) * A_STAR_GRID_SIZE, 0);
+            cr->line_to((i + 1) * A_STAR_GRID_SIZE, WINDOW_HEIGHT - 1);
+        }
+        cr->stroke();
+    }
 
     bool View::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
+//        drawAStarGrid(cr);
+//        if(!ctl->res.empty())
+//        {
+//            cr->move_to(MAP_A_STAR_X_TO_REAL_X(ctl->res.begin()->first),
+//                        MAP_A_STAR_Y_TO_REAL_Y(ctl->res.begin()->second));
+//            for(const auto& p: ctl->res)
+//            {
+//                cr->line_to(MAP_A_STAR_X_TO_REAL_X(p.first), MAP_A_STAR_Y_TO_REAL_Y(p.second));
+//            }
+//        }
+//        cr->stroke();
+
         drawOutline(cr);
         Controller::BlockList* blocks = ctl->getBlocks();
         for(auto& block: *blocks)

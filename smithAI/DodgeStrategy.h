@@ -7,6 +7,7 @@
 #include <deque>
 #include <string>
 #include <iostream>
+#include "Object.h"
 #include "util/Vec.h"
 #include "Strategy.h"
 
@@ -26,7 +27,7 @@ namespace TankTrouble
 
             friend std::ostream& operator<<(std::ostream& os, const DodgeCommand& cmd)
             {
-                os << "Cmd{cmd = " + cmd.toString() + ", step = " << cmd.step << "}" << std::endl;
+                os << "Cmd{cmd = " + cmd.toString() + ", step = " << cmd.step << "} ";
                 return os;
             }
 
@@ -51,6 +52,7 @@ namespace TankTrouble
 
     private:
         std::deque<DodgeCommand> cmds;
+        Object::PosInfo prevPos;
         uint64_t needStep;
     };
 }
