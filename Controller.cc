@@ -80,7 +80,7 @@ namespace TankTrouble
             smith->ballisticsPredict(shells, globalSteps);
         });
 
-        loop.runEvery(0.2, [this]() -> void {
+        loop.runEvery(0.1, [this]() -> void {
             Object::PosInfo smithPos;
             if(!getSmithPosition(smithPos)) return;
             smith->getDodgeStrategy(smithPos, globalSteps);

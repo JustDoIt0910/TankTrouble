@@ -326,12 +326,14 @@ namespace TankTrouble
         BallisticSegment segment = threats[0];
         util::Vec v1 = util::getUnitVector(segment.angle);
         util::Vec vt = util::getUnitVector(tryPos.angle);
-        double angle = util::angleBetweenVectors(v1, vt);
         bool pointingToSameSide = (witchSide == RIGHT_SIDE && v1.cross(vt) > 0) ||
                                   (witchSide == LEFT_SIDE && v1.cross(vt) < 0);
         bool stop = false;
-        int direction = pointingToSameSide ? MOVING_FORWARD : MOVING_BACKWARD;
-        DodgeStrategy::DodgeOperation moveOp = pointingToSameSide ?
+        int direction;
+        if(v1.cross(vt) != 0)
+            direction = pointingToSameSide ? MOVING_FORWARD : MOVING_BACKWARD;
+        else direction = util::angleBetweenVectors(v1, vt) <= 90.0 ? MOVING_FORWARD : MOVING_BACKWARD;
+        DodgeStrategy::DodgeOperation moveOp = (direction == MOVING_FORWARD) ?
                                                DodgeStrategy::DODGE_CMD_MOVE_FORWARD: DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
         uint64_t s;
         if(tryMovingStraight(globalSteps, direction, tryPos, &s) == 1)
