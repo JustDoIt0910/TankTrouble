@@ -15,6 +15,7 @@
 #include "util/Vec.h"
 #include "Tank.h"
 #include "Block.h"
+#include "Maze.h"
 #include "defs.h"
 #include "smithAI/DodgeStrategy.h"
 #include "smithAI/ContactStrategy.h"
@@ -49,6 +50,7 @@ namespace TankTrouble
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
 
+        AStar::AStarResult res;
 
     private:
         void run();
@@ -64,13 +66,23 @@ namespace TankTrouble
         int checkTankBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);
         Object::PosInfo getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId);
 
-        void initBlocks(int num);
+        void initBlocks();
+        struct PairHash
+        {
+            template<typename T1, typename T2>
+            size_t operator()(const std::pair<T1, T2>& p) const
+            {
+                return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);
+            }
+        };
+        static std::vector<Object::PosInfo> getRandomPositions(int num);
         bool getSmithPosition(Object::PosInfo& pos);
         bool getMyPosition(Object::PosInfo& pos);
 
         ObjectList objects;
         ObjectListPtr snapshot;
         std::vector<int> deletedObjs;
+        Maze maze;
         BlockList blocks;
         std::mutex mu;
         std::condition_variable cv;

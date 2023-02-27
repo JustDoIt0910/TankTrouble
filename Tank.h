@@ -34,9 +34,9 @@ namespace TankTrouble
         void getRemainShell();
         ~Tank() override = default;
 
-        const static int TANK_WIDTH = 18;
-        const static int TANK_HEIGHT = 25;
-        const static int ROTATING_STEP = 4;
+        const static int TANK_WIDTH = 20;
+        const static int TANK_HEIGHT = 28;
+        const static int ROTATING_STEP = 3;
 
     private:
         void recalculate();

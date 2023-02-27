@@ -29,10 +29,11 @@ namespace TankTrouble
         globalSteps(0),
         smith(new AgentSmith(this))
     {
-        initBlocks(45);
-        std::unique_ptr<Object> tank(new Tank(util::Vec(20, 20), 90.0, RED));
+        initBlocks();
+        std::vector<Object::PosInfo> pos = getRandomPositions(2);
+        std::unique_ptr<Object> tank(new Tank(pos[0].pos, pos[0].angle, RED));
         objects[tank->id()] = std::move(tank);
-        std::unique_ptr<Object> smithTank(new Tank(util::Vec(280, 225), 90.0, GREY));
+        std::unique_ptr<Object> smithTank(new Tank(pos[1].pos, pos[1].angle, GREY));
         objects[smithTank->id()] = std::move(smithTank);
         tankNum += 2;
 
@@ -70,16 +71,16 @@ namespace TankTrouble
         loop.addEventListener(strategyUpdateEvent,
                               [this](ev::Event* event){this->strategyUpdateHandler(event);});
 
-        loop.runEvery(0.015, [this]{this->moveAll();});
+        loop.runEvery(0.011, [this]{this->moveAll();});
 
-        loop.runEvery(0.1, [this] () -> void {
+        loop.runEvery(0.2, [this] () -> void {
             Object::PosInfo smithPos;
             if(!getSmithPosition(smithPos)) return;
             AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithPos);
             smith->ballisticsPredict(shells, globalSteps);
         });
 
-        loop.runEvery(0.1, [this]() -> void {
+        loop.runEvery(0.2, [this]() -> void {
             Object::PosInfo smithPos;
             if(!getSmithPosition(smithPos)) return;
             smith->getDodgeStrategy(smithPos, globalSteps);
@@ -109,6 +110,24 @@ namespace TankTrouble
         Tank* me = dynamic_cast<Tank*>(objects[1].get());
         pos = me->getCurrentPosition();
         return true;
+    }
+
+    std::vector<Object::PosInfo> Controller::getRandomPositions(int num)
+    {
+        std::vector<Object::PosInfo> pos;
+        std::unordered_set<std::pair<int, int>, PairHash> s;
+        while(s.size() < num)
+        {
+            int x = util::getRandomNumber(0, HORIZON_GRID_NUMBER - 1);
+            int y = util::getRandomNumber(0, VERTICAL_GRID_NUMBER - 1);
+            s.insert(std::make_pair(x, y));
+        }
+        for(const auto& p: s)
+        {
+            int i = util::getRandomNumber(0, 3);
+            pos.emplace_back(util::Vec(MAP_GRID_TO_REAL(p.first, p.second)), i * 90.0);
+        }
+        return pos;
     }
 
     void Controller::dispatchEvent(ev::Event *event) {controlLoop->dispatchEvent(event);}
@@ -353,19 +372,17 @@ namespace TankTrouble
         return bounced;
     }
 
-    void Controller::initBlocks(int num)
+    void Controller::initBlocks()
     {
-        auto startEnds = util::getRandomBlocks(num);
-        for(const auto& p: startEnds)
+        auto blockPositions = maze.getBlockPositions();
+        for(const auto& b: blockPositions)
         {
-            util::Vec startVec(MAP_GRID_TO_REAL(p.first.x(), p.first.y()));
-            util::Vec endVec(MAP_GRID_TO_REAL(p.second.x(), p.second.y()));
-            Block block(util::Id::getBlockId(), startVec, endVec);
+            Block block(util::Id::getBlockId(), b.first, b.second);
             assert(blocks.find(block.id()) == blocks.end());
             blocks[block.id()] = block;
             //将block添加到其相邻六个格子对应的碰撞可能列表中
-            int gx = static_cast<int>(p.first.x()) - 1;
-            int gy = static_cast<int>(p.first.y()) - 1;
+            int gx = MAP_REAL_X_TO_GRID_X(block.start().x() - GRID_SIZE / 2);
+            int gy = MAP_REAL_Y_TO_GRID_Y(block.start().y() - GRID_SIZE / 2);
             if(block.isHorizon())
             {
                 if(gx >= 0)

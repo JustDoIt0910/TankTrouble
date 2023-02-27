@@ -85,10 +85,16 @@ namespace TankTrouble
 
         void tryRotation(uint64_t globalSteps);
 
-        void tryMoving(uint64_t globalSteps);
+        void tryRotatingAndMoving(uint64_t globalSteps);
+
+        void tryRotatingWithMoving(uint64_t globalSteps);
 
         DodgeStrategy dodgeToSide(uint64_t globalSteps, const Object::PosInfo& cur,
                                   int whichSide, int angleGran);
+
+        bool movingCurve(uint64_t globalSteps, int direction, int rotation,
+                         const Object::PosInfo& cur, int angleGran,
+                         uint64_t * rotatingSteps, uint64_t* straightSteps);
 
         int tryMovingStraight(uint64_t globalSteps, int direction,
                               const Object::PosInfo& cur, uint64_t * takingSteps);

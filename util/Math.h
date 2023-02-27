@@ -23,8 +23,6 @@ namespace TankTrouble::util
     //已知矩形中心点坐标，旋转角，宽高，求四个顶点坐标
     std::vector<Vec> getCornerVec(const Vec& pos, double angle, int w, int h);
 
-    std::vector<std::pair<Vec, Vec>> getRandomBlocks(int num);
-
     //提供矩形两个检测轴的单位向量，矩形中心，圆心，矩形宽高，半径判断矩形和圆形是否碰撞(重叠)
     bool checkRectCircleCollision(const Vec& vec1, const Vec& vec2,
                                   const Vec& rectCenter, const Vec& circleCenter,
@@ -59,6 +57,8 @@ namespace TankTrouble::util
 
     //求两向量夹角(度)
     double angleBetweenVectors(const Vec& v1, const Vec& v2);
+
+    int getRandomNumber(int low, int high);
 }
 
 #endif //TANK_TROUBLE_MATH_H

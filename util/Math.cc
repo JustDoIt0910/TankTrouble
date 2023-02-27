@@ -2,11 +2,8 @@
 // Created by zr on 23-2-8.
 //
 #include "Math.h"
-#include "defs.h"
 #include <cmath>
-#include <numeric>
 #include <random>
-#include <chrono>
 #include <utility>
 #include <algorithm>
 
@@ -42,37 +39,6 @@ namespace TankTrouble::util
         bl = Vec(2 * pos.x() - tr.x(), 2 * pos.y() - tr.y());
         br = Vec(2 * pos.x() - tl.x(), 2 * pos.y() - tl.y());
         return {tl, tr, bl, br};
-    }
-
-    std::vector<std::pair<Vec, Vec>> getRandomBlocks(int num)
-    {
-        std::vector<int> v(MAX_BLOCKS_NUM);
-        std::iota(v.begin(), v.end(), 0);
-        unsigned long seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::shuffle(v.begin(), v.end(), std::default_random_engine(seed));
-        std::vector<std::pair<Vec, Vec>> res;
-        for(int i = 0; i < num; i++)
-        {
-            int index = v[i];
-            if(index < (HORIZON_GRID_NUMBER - 1) * VERTICAL_GRID_NUMBER)
-            {
-                //竖直的block
-                int x = index % (HORIZON_GRID_NUMBER - 1) + 1;
-                int y = index / (HORIZON_GRID_NUMBER - 1);
-                Vec start(x, y); Vec end(x, y + 1);
-                res.emplace_back(start, end);
-            }
-            else
-            {
-                //水平的block
-                index -= (HORIZON_GRID_NUMBER - 1) * VERTICAL_GRID_NUMBER;
-                int x = index % HORIZON_GRID_NUMBER;
-                int y = index / HORIZON_GRID_NUMBER + 1;
-                Vec start(x, y); Vec end(x + 1, y);
-                res.emplace_back(start, end);
-            }
-        }
-        return res;
     }
 
     bool checkRectCircleCollision(const Vec& vec1, const Vec& vec2,
@@ -192,5 +158,13 @@ namespace TankTrouble::util
     {
         double cos = (v1 * v2) / (v1.norm() * v2.norm());
         return rad2Deg(acos(cos));
+    }
+
+    int getRandomNumber(int low, int high)
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(low, high);
+        return distrib(gen);
     }
 }

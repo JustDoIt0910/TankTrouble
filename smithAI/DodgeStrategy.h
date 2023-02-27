@@ -18,7 +18,9 @@ namespace TankTrouble
     {
     public:
         enum DodgeOperation {DODGE_CMD_MOVE_FORWARD, DODGE_CMD_MOVE_BACKWARD,
-                DODGE_CMD_ROTATE_CW, DODGE_CMD_ROTATE_CCW};
+                DODGE_CMD_ROTATE_CW, DODGE_CMD_ROTATE_CCW,
+                DODGE_CMD_FORWARD_CW, DODGE_CMD_FORWARD_CCW,
+                DODGE_CMD_BACKWARD_CW, DODGE_CMD_BACKWARD_CCW};
         struct DodgeCommand
         {
             DodgeOperation op;
@@ -34,7 +36,9 @@ namespace TankTrouble
             [[nodiscard]] std::string toString() const
             {
                 static const char* names[] = {"DODGE_CMD_MOVE_FORWARD", "DODGE_CMD_MOVE_BACKWARD",
-                                              "DODGE_CMD_ROTATE_CW", "DODGE_CMD_ROTATE_CCW"};
+                                              "DODGE_CMD_ROTATE_CW", "DODGE_CMD_ROTATE_CCW",
+                                              "DODGE_CMD_FORWARD_CW", "DODGE_CMD_FORWARD_CCW",
+                                              "DODGE_CMD_BACKWARD_CW", "DODGE_CMD_BACKWARD_CCW"};
                 return names[this->op];
             }
         };

@@ -21,13 +21,13 @@ namespace TankTrouble
         int nextX = route[next].first;
         int nextY = route[next].second;
         util::Vec gridCenter(MAP_A_STAR_X_TO_REAL_X(nextX), MAP_A_STAR_Y_TO_REAL_Y(nextY));
-        if(util::distanceOfTwoPoints(tankPos.pos, gridCenter) < 5)
+        if(util::distanceOfTwoPoints(tankPos.pos, gridCenter) < 15)
             next++;
         util::Vec vn = gridCenter - tankPos.pos;
         util::Vec vt = util::getUnitVector(tankPos.angle);
-        if(util::angleBetweenVectors(vt, vn) <= 5.0 || (isRotating && tankPos.angle == prevPos.angle))
+        if(util::angleBetweenVectors(vt, vn) < 45.0)
             tank->forward(true);
-        else
+        if(util::angleBetweenVectors(vt, vn) >= 12.0 && !(isRotating && tankPos.angle == prevPos.angle))
         {
             if(vt.cross(vn) >= 0)
                 tank->rotateCW(true);

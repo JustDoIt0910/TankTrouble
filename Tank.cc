@@ -86,12 +86,12 @@ namespace TankTrouble
         cr->fill();
 
         cr->set_source_rgb(color[0] - 0.3, color[1] - 0.3, color[2] - 0.3);
-        cr->arc(posInfo.pos.x(), posInfo.pos.y(), 7, 0.0, 2 * M_PI);
+        cr->arc(posInfo.pos.x(), posInfo.pos.y(), 9, 0.0, 2 * M_PI);
         cr->fill();
 
-        cr->set_line_width(7.0);
+        cr->set_line_width(9.0);
         cr->move_to(posInfo.pos.x(), posInfo.pos.y());
-        util::Vec to = util::polar2Cart(posInfo.angle, 15, posInfo.pos);
+        util::Vec to = util::polar2Cart(posInfo.angle, 17, posInfo.pos);
         cr->line_to(to.x(), to.y());
         cr->stroke();
         cr->restore();
@@ -135,7 +135,7 @@ namespace TankTrouble
     Shell* Tank::makeShell()
     {
         remainBullets--;
-        util::Vec shellPos = util::polar2Cart(posInfo.angle, 10, posInfo.pos);
+        util::Vec shellPos = util::polar2Cart(posInfo.angle, 15, posInfo.pos);
         return new Shell(shellPos, posInfo.angle, _id);
     }
 

@@ -17,7 +17,7 @@
 
 namespace TankTrouble
 {
-    enum ObjMovingStep {TANK_MOVING_STEP = 1, SHELL_MOVING_STEP = 2};
+    enum ObjMovingStep {TANK_MOVING_STEP = 1, SHELL_MOVING_STEP = 1};
     enum ObjType {OBJ_TANK, OBJ_SHELL};
     typedef uint8_t MovingStatus;
     typedef std::vector<double> Color;

@@ -11,6 +11,7 @@ set(TANK_TROUBLE_SRC main.cc
         util/Math.cc
         Window.cc
         View.cc
+        Maze.cc
         Controller.cc
         event/ControlEvent.cc
         Object.cc

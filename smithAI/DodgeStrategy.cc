@@ -35,73 +35,89 @@ namespace TankTrouble
         DodgeCommand cmd = cmds.front();
         cmds.pop_front();
         Object::PosInfo cur = tank->getCurrentPosition();
-        if(cmd.op == DODGE_CMD_ROTATE_CW)
+        if(cmd.targetStep == 0)
         {
-            if(cmd.targetStep == 0)
-            {
-                cmd.targetStep = globalStep + cmd.step;
-                cmds.push_front(cmd);
-            }
-            if(globalStep < cmd.targetStep)
-            {
-                tank->rotateCW(true);
-                cmds.push_front(cmd);
-            }
+            cmd.targetStep = globalStep + cmd.step;
+            cmds.push_front(cmd);
         }
-        else if(cmd.op == DODGE_CMD_ROTATE_CCW)
+        switch (cmd.op)
         {
-            if(cmd.targetStep == 0)
-            {
-                cmd.targetStep = globalStep + cmd.step;
-                cmds.push_front(cmd);
-            }
-            if(globalStep < cmd.targetStep)
-            {
-                tank->rotateCCW(true);
-                cmds.push_front(cmd);
-            }
+            case DODGE_CMD_ROTATE_CW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCW(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_ROTATE_CCW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCCW(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_MOVE_FORWARD:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->forward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_MOVE_BACKWARD:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->backward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_FORWARD_CW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCW(true);
+                    tank->forward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_FORWARD_CCW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCCW(true);
+                    tank->forward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_BACKWARD_CW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCW(true);
+                    tank->backward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
+            case DODGE_CMD_BACKWARD_CCW:
+                if(globalStep < cmd.targetStep)
+                {
+                    tank->rotateCCW(true);
+                    tank->backward(true);
+                    cmds.push_front(cmd);
+                }
+                break;
         }
-        else if(cmd.op == DODGE_CMD_MOVE_FORWARD)
+        if(isForwarding && cur.pos == prevPos.pos)
         {
-            if(isForwarding && cur.pos == prevPos.pos)
-            {
-                cmds.clear();
-                cmd.op = DODGE_CMD_MOVE_BACKWARD;
-                cmd.targetStep = globalStep + 10;
-                cmds.push_front(cmd);
-                tank->backward(true);
-            }
-            if(cmd.targetStep == 0)
-            {
-                cmd.targetStep = globalStep + cmd.step;
-                cmds.push_front(cmd);
-            }
-            if(globalStep < cmd.targetStep)
-            {
-                tank->forward(true);
-                cmds.push_front(cmd);
-            }
+            cmds.clear();
+            cmd.op = DODGE_CMD_MOVE_BACKWARD;
+            cmd.targetStep = globalStep + 10;
+            cmds.push_front(cmd);
+            tank->backward(true);
         }
-        else
+        else if(isBackwarding && cur.pos == prevPos.pos)
         {
-            if(isBackwarding && cur.pos == prevPos.pos)
-            {
-                cmds.clear();
-                cmd.op = DODGE_CMD_MOVE_FORWARD;
-                cmd.targetStep = globalStep + 10;
-                cmds.push_front(cmd);
-                tank->forward(true);
-            }
-            if(cmd.targetStep == 0)
-            {
-                cmd.targetStep = globalStep + cmd.step;
-                cmds.push_front(cmd);
-            }
-            if(globalStep < cmd.targetStep)
-            {
-                tank->backward(true);
-                cmds.push_front(cmd);
-            }
+            cmds.clear();
+            cmd.op = DODGE_CMD_MOVE_FORWARD;
+            cmd.targetStep = globalStep + 10;
+            cmds.push_front(cmd);
+            tank->forward(true);
         }
         prevPos = cur;
         return true;

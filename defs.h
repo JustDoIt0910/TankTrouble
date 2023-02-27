@@ -7,15 +7,18 @@
 
 #define HORIZON_GRID_NUMBER             11
 #define VERTICAL_GRID_NUMBER            7
-#define GRID_SIZE                       60
+#define GRID_SIZE                       60.0
 #define WINDOW_WIDTH                    (HORIZON_GRID_NUMBER * GRID_SIZE)
 #define WINDOW_HEIGHT                   (VERTICAL_GRID_NUMBER * GRID_SIZE)
-#define MAP_GRID_TO_REAL(gx, gy)        ((gx) * GRID_SIZE), ((gy) * GRID_SIZE)
 #define MAP_REAL_TO_GRID(rx, ry)        ((rx) / (GRID_SIZE)), ((ry) / (GRID_SIZE))
+#define MAP_GRID_TO_REAL(gx, gy)        static_cast<double>((gx) * GRID_SIZE + GRID_SIZE / 2), \
+                                        static_cast<double>((gy) * GRID_SIZE + GRID_SIZE / 2)
+#define MAP_REAL_X_TO_GRID_X(rx)        ((rx) / (GRID_SIZE))
+#define MAP_REAL_Y_TO_GRID_Y(ry)        ((ry) / (GRID_SIZE))
 #define MAX_BLOCKS_NUM                  ((HORIZON_GRID_NUMBER - 1) * VERTICAL_GRID_NUMBER \
                                         + (VERTICAL_GRID_NUMBER - 1) * HORIZON_GRID_NUMBER)
 
-#define A_STAR_GRID_PER_GRID            2.0
+#define A_STAR_GRID_PER_GRID            1.0
 #define A_STAR_GRID_SIZE                (GRID_SIZE / A_STAR_GRID_PER_GRID)
 #define HORIZON_A_STAR_GRID_NUMBER      (A_STAR_GRID_PER_GRID * HORIZON_GRID_NUMBER)
 #define VERTICAL_A_STAR_GRID_NUMBER     (A_STAR_GRID_PER_GRID * VERTICAL_GRID_NUMBER)
