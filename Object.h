@@ -33,11 +33,13 @@ namespace TankTrouble
 
             PosInfo& operator=(const PosInfo& info) = default;
 
+            bool operator==(const PosInfo& info){return (pos == info.pos && angle == info.angle);}
+
             PosInfo(): PosInfo(util::Vec(0.0, 0.0), 0){}
 
             static PosInfo invalid() {return PosInfo{util::Vec(DBL_MAX, DBL_MAX), DBL_MAX};}
 
-            bool isValid() const
+            [[nodiscard]] bool isValid() const
             {return (pos.x() != DBL_MAX && pos.y() != DBL_MAX && angle != DBL_MAX);}
 
             util::Vec pos;
@@ -52,6 +54,7 @@ namespace TankTrouble
         PosInfo getCurrentPosition();
         virtual ObjType type() = 0;
         [[nodiscard]] int id() const;
+        [[nodiscard]] int getMovingStatus();
         virtual ~Object() = default;
 
     protected:

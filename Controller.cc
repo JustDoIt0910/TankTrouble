@@ -71,7 +71,7 @@ namespace TankTrouble
         loop.addEventListener(strategyUpdateEvent,
                               [this](ev::Event* event){this->strategyUpdateHandler(event);});
 
-        loop.runEvery(0.011, [this]{this->moveAll();});
+        loop.runEvery(0.01, [this]{this->moveAll();});
 
         loop.runEvery(0.2, [this] () -> void {
             Object::PosInfo smithPos;
@@ -381,8 +381,10 @@ namespace TankTrouble
             assert(blocks.find(block.id()) == blocks.end());
             blocks[block.id()] = block;
             //将block添加到其相邻六个格子对应的碰撞可能列表中
-            int gx = MAP_REAL_X_TO_GRID_X(block.start().x() - GRID_SIZE / 2);
-            int gy = MAP_REAL_Y_TO_GRID_Y(block.start().y() - GRID_SIZE / 2);
+            int gx = (block.start().x() - GRID_SIZE / 2 > 0) ?
+                    MAP_REAL_X_TO_GRID_X(block.start().x() - GRID_SIZE / 2) : -1;
+            int gy = (block.start().y() - GRID_SIZE / 2 > 0) ?
+                     MAP_REAL_Y_TO_GRID_Y(block.start().y() - GRID_SIZE / 2) : -1;;
             if(block.isHorizon())
             {
                 if(gx >= 0)

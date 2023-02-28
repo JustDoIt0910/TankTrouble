@@ -63,7 +63,6 @@ namespace TankTrouble
     void AgentSmith::ballisticsPredict(const PredictingShellList& shells, uint64_t globalSteps)
     {
         int seq;
-        std::lock_guard<std::mutex> lg(mu);
         ballistics.clear();
         for(const auto& shell: shells)
         {
@@ -72,6 +71,12 @@ namespace TankTrouble
             ballisticPredict(shell, ballistic, globalSteps);
             ballistics[sid] = ballistic;
         }
+    }
+
+    bool AgentSmith::safeToMove(uint64_t globalSteps, const Object::PosInfo& cur, int movingStatus)
+    {
+        Object::PosInfo next = Tank::getNextPosition(cur, movingStatus, 0, 0);
+        return checkWillDie(globalSteps, next) != DIE;
     }
 
     Object::PosInfo AgentSmith::getShellPosition(int id, uint64_t step)
@@ -91,37 +96,27 @@ namespace TankTrouble
         return Object::PosInfo::invalid();
     }
 
-    bool AgentSmith::danger(int shellId, const Object::PosInfo& cur, uint64_t step)
-    {
-        Object::PosInfo shellPos = getShellPosition(shellId, step);
-        util::Vec v1 = cur.pos - shellPos.pos;
-        util::Vec v2 = util::getUnitVector(shellPos.angle);
-        if(util::angleBetweenVectors(v1, v2) < 90 && util::distanceOfTwoPoints(cur.pos, shellPos.pos) < 50)
-            return true;
-        return false;
-    }
-
-    AgentSmith::CheckResult AgentSmith::checkFeasible(uint64_t step, const Object::PosInfo& tryPos)
+    bool AgentSmith::checkFeasible(uint64_t step, const Object::PosInfo& tryPos)
     {
         if(ctl->checkTankBlockCollision(tryPos, tryPos) != 0)
-            return UNFEASIBLE;
-        if(previousMostUrgent.isValid() &&
-                util::checkRectRectCollision(previousMostUrgent.angle, previousMostUrgent.center,
-                                             2 * Shell::RADIUS, previousMostUrgent.length,
-                                             tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT)&&
-                danger(previousMostUrgent.shellId, tryPos, step))
-            return UNFEASIBLE;
+            return false;
         auto axis = util::getUnitVectors(tryPos.angle);
+        return checkWillDie(step, tryPos) == SAFE;
+    }
+
+    AgentSmith::CheckResult AgentSmith::checkWillDie(uint64_t step, const Object::PosInfo& pos)
+    {
+        auto axis = util::getUnitVectors(pos.angle);
         for(int id: potentialThreats)
         {
             Object::PosInfo p = getShellPosition(id, step);
             if(!p.isValid())
                 return UNKNOWN;
-            if(util::checkRectCircleCollision(axis.first, axis.second, tryPos.pos, p.pos,
+            if(util::checkRectCircleCollision(axis.first, axis.second, pos.pos, p.pos,
                                               Tank::TANK_WIDTH, Tank::TANK_HEIGHT, Shell::RADIUS))
-            return UNFEASIBLE;
+                return DIE;
         }
-        return FEASIBLE;
+        return SAFE;
     }
 
     bool AgentSmith::segmentCmp(const BallisticSegment& s1, const BallisticSegment& s2)
@@ -139,8 +134,7 @@ namespace TankTrouble
         {
             success = true;
             tryPos.angle = static_cast<int>(360 + tryPos.angle - Tank::ROTATING_STEP) % 360;
-            CheckResult check = checkFeasible(step, tryPos);
-            if(check != FEASIBLE) break;
+            if(!checkFeasible(step, tryPos)) break;
             for(int i = 0; i < std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())); i++)
             {
                 BallisticSegment segment = threats[i];
@@ -161,8 +155,7 @@ namespace TankTrouble
         {
             success = true;
             tryPos.angle = static_cast<int>(tryPos.angle + Tank::ROTATING_STEP) % 360;
-            CheckResult check = checkFeasible(step, tryPos);
-            if(check != FEASIBLE) break;
+            if(!checkFeasible(step, tryPos)) break;
             for(int i = 0; i < std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())); i++)
             {
                 BallisticSegment segment = threats[i];
@@ -190,8 +183,7 @@ namespace TankTrouble
         for(int s = 0; s < 30 && !stop; s++, step++)
         {
             tryPos = Tank::getNextPosition(tryPos, direction, 0, 0);
-            CheckResult check = checkFeasible(step, tryPos);
-            if(check != FEASIBLE) break;
+            if(!checkFeasible(step, tryPos)) break;
             for(int i = 0; i < threatNum; i++)
             {
                 BallisticSegment segment = threats[i];
@@ -224,7 +216,7 @@ namespace TankTrouble
         {
            step++; cnt++;
            tryPos = Tank::getNextPosition(tryPos, direction | rotation, 0, 0);
-           if(checkFeasible(step, tryPos) != FEASIBLE)
+           if(!checkFeasible(step, tryPos))
            {
                 if(step - globalSteps > maxTryingStep)
                 {
@@ -348,8 +340,7 @@ namespace TankTrouble
         {
             step++; cnt++;
             tryPos.angle = static_cast<int>(tryPos.angle + Tank::ROTATING_STEP) % 360;
-            if(checkFeasible(step, tryPos) == UNFEASIBLE)
-                break;
+            if(!checkFeasible(step, tryPos)) break;
             if(cnt % angleGran) continue;
             util::Vec vn = util::getUnitVector(tryPos.angle);
             if(v1.cross(vn) * v1.cross(vt) > 0)
@@ -358,11 +349,23 @@ namespace TankTrouble
                         DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
                 direction = pointingToSameSide ? MOVING_FORWARD : MOVING_BACKWARD;
             }
-            else
+            else if(v1.cross(vn) * v1.cross(vt) < 0)
             {
                 moveOp = pointingToSameSide ? DodgeStrategy::DODGE_CMD_MOVE_BACKWARD:
                          DodgeStrategy::DODGE_CMD_MOVE_FORWARD;
                 direction = pointingToSameSide ? MOVING_BACKWARD : MOVING_FORWARD;
+            }
+            else
+            {
+                if(v1.cross(vn) == 0)
+                    continue;
+                else
+                {
+                    direction = ((witchSide == RIGHT_SIDE && v1.cross(vn) > 0) ||
+                            (witchSide == LEFT_SIDE && v1.cross(vn) < 0)) ? MOVING_FORWARD : MOVING_BACKWARD;
+                    moveOp = (direction == MOVING_FORWARD) ?
+                            DodgeStrategy::DODGE_CMD_MOVE_FORWARD: DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
+                }
             }
             if(tryMovingStraight(step, direction, tryPos, &s))
             {
@@ -379,8 +382,7 @@ namespace TankTrouble
         {
             step++; cnt++;
             tryPos.angle = static_cast<int>(360 + tryPos.angle - Tank::ROTATING_STEP) % 360;
-            if(checkFeasible(step, tryPos) == UNFEASIBLE)
-                break;
+            if(!checkFeasible(step, tryPos)) break;
             if(cnt % angleGran) continue;
             util::Vec vn = util::getUnitVector(tryPos.angle);
             if(v1.cross(vn) * v1.cross(vt) > 0)
@@ -389,11 +391,23 @@ namespace TankTrouble
                          DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
                 direction = pointingToSameSide ? MOVING_FORWARD : MOVING_BACKWARD;
             }
-            else
+            else if(v1.cross(vn) * v1.cross(vt) < 0)
             {
                 moveOp = pointingToSameSide ? DodgeStrategy::DODGE_CMD_MOVE_BACKWARD:
                          DodgeStrategy::DODGE_CMD_MOVE_FORWARD;
                 direction = pointingToSameSide ? MOVING_BACKWARD : MOVING_FORWARD;
+            }
+            else
+            {
+                if(v1.cross(vn) == 0)
+                    continue;
+                else
+                {
+                    direction = ((witchSide == RIGHT_SIDE && v1.cross(vn) > 0) ||
+                                 (witchSide == LEFT_SIDE && v1.cross(vn) < 0)) ? MOVING_FORWARD : MOVING_BACKWARD;
+                    moveOp = (direction == MOVING_FORWARD) ?
+                             DodgeStrategy::DODGE_CMD_MOVE_FORWARD: DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
+                }
             }
             if(tryMovingStraight(step, direction, tryPos, &s))
             {
@@ -442,7 +456,6 @@ namespace TankTrouble
         potentialThreats.clear();
         threats.clear();
         {
-            std::lock_guard<std::mutex> lg(mu);
             for(const auto& entry: ballistics)
             {
                 for(auto segment : entry.second)
@@ -459,14 +472,6 @@ namespace TankTrouble
         }
         if(threats.empty())
             return;
-        if(threats[0].shellId != currentMostUrgent.shellId || threats[0].seq != currentMostUrgent.seq)
-        {
-            if(threats[0].shellId != previousMostUrgent.shellId)
-                previousMostUrgent = currentMostUrgent;
-            currentMostUrgent = threats[0];
-        }
-        if(potentialThreats.find(previousMostUrgent.shellId) == potentialThreats.end())
-            previousMostUrgent = BallisticSegment::invalid();
 
         int threatNum = std::min(static_cast<int>(threats.size()), MAX_DODGING_SHELLS);
         std::sort(threats.begin(), threats.end(), segmentCmp);
@@ -502,7 +507,7 @@ namespace TankTrouble
     void AgentSmith::attack(const Object::PosInfo& smith, const Object::PosInfo& enemy,
                             uint64_t globalSteps)
     {
-        if(globalSteps - prevFireTime < 100)
+        if(globalSteps - prevFireTime < 60)
             return;
         if(util::distanceOfTwoPoints(smith.pos, enemy.pos) <= ATTACKING_RANGE)
         {

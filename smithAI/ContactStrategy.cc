@@ -7,6 +7,7 @@
 #include "Tank.h"
 #include "util/Math.h"
 #include "Controller.h"
+#include "AgentSmith.h"
 
 namespace TankTrouble
 {
@@ -42,7 +43,20 @@ namespace TankTrouble
             else tank->rotateCCW(true);
             tank->forward(false);
         }
+        if(tankPos == prevPos)
+        {
+            stuckSteps++;
+            if(stuckSteps > 5)
+            {
+                tank->rotateCW(false);
+                tank->rotateCCW(false);
+                tank->backward(true);
+            }
+        }
+        else stuckSteps = 0;
         prevPos = tankPos;
+        if(!ctl->smith->safeToMove(globalStep, tankPos, tank->getMovingStatus()))
+            tank->stop();
         return true;
     }
 }

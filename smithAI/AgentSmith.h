@@ -57,8 +57,6 @@ namespace TankTrouble
 
         explicit AgentSmith(Controller* ctl):
             ctl(ctl),
-            previousMostUrgent(BallisticSegment::invalid()),
-            currentMostUrgent(BallisticSegment::invalid()),
             aStar(new AStar),
             prevFireTime(-1000){}
 
@@ -75,13 +73,14 @@ namespace TankTrouble
         void attack(const Object::PosInfo& smith, const Object::PosInfo& enemy,
                     uint64_t globalSteps);
 
+        bool safeToMove(uint64_t globalSteps, const Object::PosInfo& cur, int movingStatus);
+
     private:
         static bool segmentCmp(const BallisticSegment& s1, const BallisticSegment& s2);
 
         Object::PosInfo getShellPosition(int id, uint64_t globalSteps);
 
-        enum CheckResult {UNFEASIBLE, FEASIBLE, UNKNOWN};
-        CheckResult checkFeasible(uint64_t step, const Object::PosInfo& tryPos);
+        bool checkFeasible(uint64_t step, const Object::PosInfo& tryPos);
 
         void tryRotation(uint64_t globalSteps);
 
@@ -99,20 +98,18 @@ namespace TankTrouble
         int tryMovingStraight(uint64_t globalSteps, int direction,
                               const Object::PosInfo& cur, uint64_t * takingSteps);
 
-        bool danger(int shellId, const Object::PosInfo& cur, uint64_t step);
+        enum CheckResult {SAFE, DIE, UNKNOWN};
+        CheckResult checkWillDie(uint64_t step, const Object::PosInfo& pos);
 
         Object::PosInfo tryAiming(const Object::PosInfo& smith, const Object::PosInfo& enemy);
 
         Controller* ctl;
         Ballistics ballistics;
         std::unordered_map<int, std::vector<DodgeStrategy>> strategies;
-        std::mutex mu;
 
         Object::PosInfo smithPos;
         std::vector<BallisticSegment> threats;
         std::unordered_set<int> potentialThreats;
-        BallisticSegment previousMostUrgent;
-        BallisticSegment currentMostUrgent;
 
         std::unique_ptr<AStar> aStar;
         uint64_t prevFireTime;

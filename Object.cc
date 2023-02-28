@@ -16,4 +16,6 @@ namespace TankTrouble
     Object::PosInfo Object::getCurrentPosition() {return posInfo;}
 
     int Object::id() const {return _id;}
+
+    int Object::getMovingStatus() {return movingStatus;}
 }
