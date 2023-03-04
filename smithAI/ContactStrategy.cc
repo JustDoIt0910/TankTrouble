@@ -6,12 +6,12 @@
 #include "ContactStrategy.h"
 #include "Tank.h"
 #include "util/Math.h"
-#include "Controller.h"
+#include "controller/LocalController.h"
 #include "AgentSmith.h"
 
 namespace TankTrouble
 {
-    bool ContactStrategy::update(Controller* ctl, Tank* tank, uint64_t globalStep)
+    bool ContactStrategy::update(LocalController* ctl, Tank* tank, uint64_t globalStep)
     {
         bool isRotating = tank->isRotatingCW() || tank->isRotatingCCW();
         bool isForwarding = tank->isForwarding();

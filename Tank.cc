@@ -3,7 +3,7 @@
 //
 
 #include "Tank.h"
-#include "View.h"
+#include "view/GameArea.h"
 #include "Shell.h"
 #include "util/Math.h"
 #include "util/Id.h"
@@ -81,7 +81,7 @@ namespace TankTrouble
     void Tank::draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
         cr->save();
-        View::drawRect(cr, color, topLeft, topRight, bottomLeft, bottomRight);
+        GameArea::drawRect(cr, color, topLeft, topRight, bottomLeft, bottomRight);
         cr->close_path();
         cr->fill();
 

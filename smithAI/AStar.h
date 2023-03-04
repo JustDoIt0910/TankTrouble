@@ -26,7 +26,7 @@ namespace TankTrouble
     public:
         typedef std::unordered_map<int, Block> BlockList;
         typedef std::deque<std::pair<int, int>> AStarResult;
-        AStar();
+        AStar() = default;
         void init(BlockList* blocks);
         AStarResult findRoute(int sx, int sy, int ex, int ey);
 

@@ -16,7 +16,8 @@ namespace TankTrouble
     class Maze
     {
     public:
-        Maze();
+        Maze() = default;
+        void generate();
         std::vector<std::pair<util::Vec, util::Vec>> getBlockPositions();
 
     private:

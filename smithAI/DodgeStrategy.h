@@ -13,7 +13,7 @@
 
 namespace TankTrouble
 {
-    class Controller;
+    class LocalController;
     class DodgeStrategy : public Strategy
     {
     public:
@@ -48,7 +48,7 @@ namespace TankTrouble
         void addCmd(const DodgeCommand& cmd);
         bool isEmpty();
         void popBack();
-        bool update(Controller* ctl, Tank* tank, uint64_t globalStep) override;
+        bool update(LocalController* ctl, Tank* tank, uint64_t globalStep) override;
         bool operator<(const DodgeStrategy& strategy) const;
         DodgeStrategy& operator=(const DodgeStrategy& strategy) = default;
         bool isValid();

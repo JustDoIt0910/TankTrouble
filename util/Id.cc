@@ -21,4 +21,11 @@ namespace TankTrouble::util
     int Id::getBlockId() {return globalBlockId++;}
 
     int Id::getShellId() {return globalShellId++;}
+
+    void Id::reset()
+    {
+        Id::globalTankId = 1;
+        Id::globalBlockId = 11;
+        Id::globalShellId = MAX_BLOCKS_NUM + 11;
+    }
 }

@@ -9,10 +9,10 @@
 
 namespace TankTrouble
 {
-    class View : public Gtk::DrawingArea
+    class GameArea : public Gtk::DrawingArea
     {
     public:
-        explicit View(Controller*);
+        explicit GameArea(Controller*);
         static void drawRect(const Cairo::RefPtr<Cairo::Context>& cr,
                              Color color,
                              util::Vec tl, util::Vec tr, util::Vec bl, util::Vec br);

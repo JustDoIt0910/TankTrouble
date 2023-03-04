@@ -8,8 +8,8 @@
 #define HORIZON_GRID_NUMBER             11
 #define VERTICAL_GRID_NUMBER            7
 #define GRID_SIZE                       60.0
-#define WINDOW_WIDTH                    (HORIZON_GRID_NUMBER * GRID_SIZE)
-#define WINDOW_HEIGHT                   (VERTICAL_GRID_NUMBER * GRID_SIZE)
+#define GAME_VIEW_WIDTH                 (HORIZON_GRID_NUMBER * GRID_SIZE)
+#define GAME_VIEW_HEIGHT                (VERTICAL_GRID_NUMBER * GRID_SIZE)
 #define MAP_REAL_TO_GRID(rx, ry)        ((rx) / (GRID_SIZE)), ((ry) / (GRID_SIZE))
 #define MAP_GRID_TO_REAL(gx, gy)        static_cast<double>((gx) * GRID_SIZE + GRID_SIZE / 2), \
                                         static_cast<double>((gy) * GRID_SIZE + GRID_SIZE / 2)
@@ -26,5 +26,8 @@
 #define MAP_REAL_Y_TO_A_STAR_Y(ry)      (static_cast<int>((ry) / A_STAR_GRID_SIZE))
 #define MAP_A_STAR_X_TO_REAL_X(ax)      static_cast<double>((ax) * A_STAR_GRID_SIZE + A_STAR_GRID_SIZE / 2)
 #define MAP_A_STAR_Y_TO_REAL_Y(ay)      static_cast<double>((ay) * A_STAR_GRID_SIZE + A_STAR_GRID_SIZE / 2)
+
+#define WINDOW_WIDTH                    GAME_VIEW_WIDTH + 100
+#define WINDOW_HEIGHT                   GAME_VIEW_HEIGHT
 
 #endif //TANK_TROUBLE_DEFS_H

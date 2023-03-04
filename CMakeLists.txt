@@ -10,9 +10,9 @@ set(TANK_TROUBLE_SRC main.cc
         util/Vec.cc
         util/Math.cc
         Window.cc
-        View.cc
+        view/GameArea.cc
         Maze.cc
-        Controller.cc
+        controller/LocalController.cc
         event/ControlEvent.cc
         Object.cc
         util/Id.cc
@@ -21,7 +21,8 @@ set(TANK_TROUBLE_SRC main.cc
         event/StrategyUpdateEvent.cc
         smithAI/AStar.cc
         smithAI/ContactStrategy.cc
-        smithAI/AttackStrategy.cc)
+        smithAI/AttackStrategy.cc
+        view/EntryView.cc view/EntryView.h view/GameView.cc view/GameView.h)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)

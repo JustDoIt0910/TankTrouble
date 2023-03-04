@@ -5,6 +5,9 @@
 #ifndef TANK_TROUBLE_WINDOW_H
 #define TANK_TROUBLE_WINDOW_H
 #include <gtkmm.h>
+#include <memory>
+#include "view/EntryView.h"
+#include "view/GameArea.h"
 #include "Controller.h"
 
 namespace TankTrouble
@@ -12,17 +15,19 @@ namespace TankTrouble
     class Window : public Gtk::Window
     {
     public:
-        explicit Window(Controller* ctl);
+        Window();
         ~Window() override = default;
         bool on_key_press_event(GdkEventKey* key_event) override;
         bool on_key_release_event(GdkEventKey* key_event) override;
 
     private:
-        Controller* ctl;
+        EntryView entryView;
+        void on_choose_local();
+
+        std::unique_ptr<Controller> ctl;
+        std::unique_ptr<GameArea> gameArea;
         bool KeyUpPressed, KeyDownPressed, KeyLeftPressed, KeyRightPressed;
         bool spacePressed;
-        //testing
-        bool KeyDPressed;
     };
 }
 

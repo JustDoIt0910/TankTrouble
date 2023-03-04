@@ -21,7 +21,7 @@
 namespace TankTrouble
 {
     class Block;
-    class Controller;
+    class LocalController;
 
     class AgentSmith
     {
@@ -55,7 +55,7 @@ namespace TankTrouble
         const static int MAX_DODGING_SHELLS;
         const static int ATTACKING_RANGE;
 
-        explicit AgentSmith(Controller* ctl):
+        explicit AgentSmith(LocalController* ctl):
             ctl(ctl),
             aStar(new AStar),
             prevFireTime(-1000){}
@@ -103,7 +103,7 @@ namespace TankTrouble
 
         Object::PosInfo tryAiming(const Object::PosInfo& smith, const Object::PosInfo& enemy);
 
-        Controller* ctl;
+        LocalController* ctl;
         Ballistics ballistics;
         std::unordered_map<int, std::vector<DodgeStrategy>> strategies;
 

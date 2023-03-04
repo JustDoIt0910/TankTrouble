@@ -25,7 +25,7 @@ namespace TankTrouble
 
     bool DodgeStrategy::operator<(const DodgeStrategy& strategy) const{return needStep < strategy.needStep;}
 
-    bool DodgeStrategy::update(Controller* ctl, Tank* tank, uint64_t globalStep)
+    bool DodgeStrategy::update(LocalController* ctl, Tank* tank, uint64_t globalStep)
     {
         bool isForwarding = tank->isForwarding();
         bool isBackwarding = tank->isBackwarding();

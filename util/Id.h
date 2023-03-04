@@ -15,6 +15,7 @@ namespace TankTrouble::util
     class Id
     {
     public:
+        static void reset();
         static int getTankId();
         static int getBlockId();
         static int getShellId();

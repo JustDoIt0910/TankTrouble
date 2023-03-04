@@ -17,7 +17,7 @@ namespace TankTrouble
                 attackingPos(pos),
                 done(false){}
 
-        bool update(Controller* ctl, Tank* tank, uint64_t globalStep) override;
+        bool update(LocalController* ctl, Tank* tank, uint64_t globalStep) override;
         void cancelAttack();
 
     private:

@@ -3,20 +3,39 @@
 //
 
 #include "Window.h"
+
+#include <memory>
 #include "defs.h"
 #include "event/ControlEvent.h"
+#include "controller/LocalController.h"
 
 namespace TankTrouble
 {
-    Window::Window(Controller* ctl):
-        KeyUpPressed(false), KeyDownPressed(false), KeyLeftPressed(false), KeyRightPressed(false),
-        spacePressed(false),
-        ctl(ctl)
+    Window::Window():
+        ctl(nullptr),
+        KeyUpPressed(false), KeyDownPressed(false),
+        KeyLeftPressed(false), KeyRightPressed(false),
+        spacePressed(false)
     {
         set_title("TankTrouble");
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
         set_resizable(false);
+
+        entryView.signal_choose_local().
+            connect(sigc::mem_fun(*this, &Window::on_choose_local));
+        add(entryView);
+        entryView.show();
+    }
+
+    void Window::on_choose_local()
+    {
+        remove();
+        ctl = std::make_unique<LocalController>();
+        ctl->start();
         add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+        gameArea = std::make_unique<GameArea>(ctl.get());
+        add(*gameArea);
+        gameArea->show();
     }
 
     bool Window::on_key_press_event(GdkEventKey* key_event)

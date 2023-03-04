@@ -3,7 +3,7 @@
 //
 
 #include "AgentSmith.h"
-#include "Controller.h"
+#include "controller/LocalController.h"
 #include "Shell.h"
 #include "util/Math.h"
 #include "event/StrategyUpdateEvent.h"
@@ -76,7 +76,7 @@ namespace TankTrouble
     bool AgentSmith::safeToMove(uint64_t globalSteps, const Object::PosInfo& cur, int movingStatus)
     {
         Object::PosInfo next = Tank::getNextPosition(cur, movingStatus, 0, 0);
-        return checkWillDie(globalSteps, next) != DIE;
+        return checkWillDie(globalSteps + 1, next) != DIE;
     }
 
     Object::PosInfo AgentSmith::getShellPosition(int id, uint64_t step)
@@ -534,7 +534,6 @@ namespace TankTrouble
             auto* strategy = new ContactStrategy(route);
             auto* event = new StrategyUpdateEvent(strategy);
             ctl->dispatchEvent(event);
-            ctl->res = route;
         }
     }
 
@@ -543,7 +542,7 @@ namespace TankTrouble
         Object::PosInfo tryPos = smith;
         double distance = util::distanceOfTwoPoints(smith.pos, enemy.pos);
         double angle = util::vector2Angle(enemy.pos - smith.pos);
-        Controller::BlockList* blocks = ctl->getBlocks();
+        LocalController::BlockList* blocks = ctl->getBlocks();
         bool directShoot = true;
         for(const auto& block: *blocks)
         {

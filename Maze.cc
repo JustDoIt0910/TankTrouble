@@ -12,9 +12,9 @@ namespace TankTrouble
     static int dy[] = {-1, 0, 1, 0};
     int vis[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
 
-    Maze::Maze():
-        map(MAX_GRID_ID, std::vector<int>(MAX_GRID_ID, 0))
+    void Maze::generate()
     {
+        map = std::vector(MAX_GRID_ID, std::vector<int>(MAX_GRID_ID, 0));
         memset(vis, 0 ,sizeof(vis));
         std::vector<std::pair<Grid, Grid>> walls;
         vis[0][0] = 1;

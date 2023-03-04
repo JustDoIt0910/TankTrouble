@@ -4,12 +4,12 @@
 
 #include "AttackStrategy.h"
 #include "Tank.h"
-#include "Controller.h"
+#include "controller/LocalController.h"
 #include "util/Math.h"
 
 namespace TankTrouble
 {
-    bool AttackStrategy::update(Controller* ctl, Tank* tank, uint64_t globalStep)
+    bool AttackStrategy::update(LocalController* ctl, Tank* tank, uint64_t globalStep)
     {
         if(done) return false;
         Object::PosInfo cur = tank->getCurrentPosition();

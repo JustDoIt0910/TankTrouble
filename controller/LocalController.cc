@@ -3,12 +3,11 @@
 //
 
 #include "defs.h"
-#include "Controller.h"
+#include "LocalController.h"
 #include "util/Math.h"
 #include "util/Id.h"
 #include "event/ControlEvent.h"
 #include "event/StrategyUpdateEvent.h"
-#include "Tank.h"
 #include "Shell.h"
 #include "smithAI/AgentSmith.h"
 #include <thread>
@@ -16,18 +15,57 @@
 
 namespace TankTrouble
 {
-    static util::Vec topBorderCenter(static_cast<double>(WINDOW_WIDTH) / 2, 2.0);
-    static util::Vec leftBorderCenter(2.0, static_cast<double>(WINDOW_HEIGHT) / 2);
-    static util::Vec bottomBorderCenter(static_cast<double>(WINDOW_WIDTH) / 2, static_cast<double>(WINDOW_HEIGHT) - 2 - 1);
-    static util::Vec rightBorderCenter(static_cast<double>(WINDOW_WIDTH) - 2 - 1, static_cast<double>(WINDOW_HEIGHT) / 2);
+    static util::Vec topBorderCenter(static_cast<double>(GAME_VIEW_WIDTH) / 2, 2.0);
+    static util::Vec leftBorderCenter(2.0, static_cast<double>(GAME_VIEW_HEIGHT) / 2);
+    static util::Vec bottomBorderCenter(static_cast<double>(GAME_VIEW_WIDTH) / 2, 
+                                        static_cast<double>(GAME_VIEW_HEIGHT) - 2 - 1);
+    static util::Vec rightBorderCenter(static_cast<double>(GAME_VIEW_WIDTH) - 2 - 1, 
+                                       static_cast<double>(GAME_VIEW_HEIGHT) / 2);
 
-    Controller::Controller():
-        started(false),
-        controlLoop(nullptr),
-        snapshot(new ObjectList),
+    LocalController::LocalController():
+        Controller(),
         tankNum(0),
         globalSteps(0),
-        smith(new AgentSmith(this))
+        smith(new AgentSmith(this)) {initAll();}
+
+    LocalController::~LocalController()
+    {
+        controlLoop->quit();
+        if(controlThread.joinable())
+            controlThread.join();
+    }
+
+    void LocalController::start()
+    {
+        controlThread = std::thread(&LocalController::run, this);
+        std::unique_lock<std::mutex> lk(mu);
+        cv.wait(lk, [this] () -> bool {return this->started;});
+    }
+
+    void LocalController::restart(double delay)
+    {
+        controlLoop->runAfter(delay, [this]() -> void {
+            tankNum = 0;
+            globalSteps = 0;
+            objects.clear();
+            blocks.clear();
+            deletedObjs.clear();
+            for(int i = 0; i < HORIZON_GRID_NUMBER; i++)
+                for(int j = 0; j < VERTICAL_GRID_NUMBER; j++)
+                {
+                    tankPossibleCollisionBlocks[i][j].clear();
+                    for(int k = 0; k < 8; k++)
+                        shellPossibleCollisionBlocks[i][j][k].clear();
+                }
+            smithDodgeStrategy.reset(nullptr);
+            smithContactStrategy.reset(nullptr);
+            smithAttackStrategy.reset(nullptr);
+            util::Id::reset();
+            initAll();
+        });
+    }
+
+    void LocalController::initAll()
     {
         initBlocks();
         std::vector<Object::PosInfo> pos = getRandomPositions(2);
@@ -36,25 +74,11 @@ namespace TankTrouble
         std::unique_ptr<Object> smithTank(new Tank(pos[1].pos, pos[1].angle, GREY));
         objects[smithTank->id()] = std::move(smithTank);
         tankNum += 2;
-
+        danger = 0;
         smith->initAStar(&blocks);
     }
 
-    Controller::~Controller()
-    {
-        controlLoop->quit();
-        if(controlThread.joinable())
-            controlThread.join();
-    }
-
-    void Controller::start()
-    {
-        controlThread = std::thread(&Controller::run, this);
-        std::unique_lock<std::mutex> lk(mu);
-        cv.wait(lk, [this] () -> bool {return this->started;});
-    }
-
-    void Controller::run()
+    void LocalController::run()
     {
         ev::reactor::EventLoop loop;
         controlLoop = &loop;
@@ -96,7 +120,7 @@ namespace TankTrouble
         controlLoop = nullptr;
     }
 
-    bool Controller::getSmithPosition(Object::PosInfo& pos)
+    bool LocalController::getSmithPosition(Object::PosInfo& pos)
     {
         if(objects.find(2) == objects.end()) return false;
         Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
@@ -104,7 +128,7 @@ namespace TankTrouble
         return true;
     }
 
-    bool Controller::getMyPosition(Object::PosInfo& pos)
+    bool LocalController::getMyPosition(Object::PosInfo& pos)
     {
         if(objects.find(1) == objects.end()) return false;
         Tank* me = dynamic_cast<Tank*>(objects[1].get());
@@ -112,7 +136,7 @@ namespace TankTrouble
         return true;
     }
 
-    std::vector<Object::PosInfo> Controller::getRandomPositions(int num)
+    std::vector<Object::PosInfo> LocalController::getRandomPositions(int num)
     {
         std::vector<Object::PosInfo> pos;
         std::unordered_set<std::pair<int, int>, PairHash> s;
@@ -130,18 +154,19 @@ namespace TankTrouble
         return pos;
     }
 
-    void Controller::dispatchEvent(ev::Event *event) {controlLoop->dispatchEvent(event);}
+    void LocalController::dispatchEvent(ev::Event *event) {controlLoop->dispatchEvent(event);}
 
-    Controller::ObjectListPtr Controller::getObjects()
+    LocalController::ObjectListPtr LocalController::getObjects()
     {
         std::lock_guard<std::mutex> lg(mu);
         return snapshot;
     }
 
-    Controller::BlockList* Controller::getBlocks() {return &blocks;}
+    LocalController::BlockList* LocalController::getBlocks() {return &blocks;}
 
-    void Controller::controlEventHandler(ev::Event *event)
+    void LocalController::controlEventHandler(ev::Event *event)
     {
+        if(objects.find(1) == objects.end()) return;
         auto* ce = dynamic_cast<ControlEvent*>(event);
         Tank* me = dynamic_cast<Tank*>(objects[1].get());
         switch (ce->operation())
@@ -158,7 +183,7 @@ namespace TankTrouble
         }
     }
 
-    void Controller::strategyUpdateHandler(ev::Event* event)
+    void LocalController::strategyUpdateHandler(ev::Event* event)
     {
         auto* updateEvent = dynamic_cast<StrategyUpdateEvent*>(event);
         Strategy* strategy = updateEvent->getStrategy();
@@ -169,7 +194,7 @@ namespace TankTrouble
         else smithAttackStrategy.reset(dynamic_cast<AttackStrategy*>(strategy));
     }
 
-    void Controller::fire(Tank *tank)
+    void LocalController::fire(Tank *tank)
     {
         if(tank->remainShells() == 0)
             return;
@@ -182,11 +207,12 @@ namespace TankTrouble
         smith->ballisticsPredict(shells, globalSteps);
     }
 
-    void Controller::moveAll()
+    static int danger = 0;
+
+    void LocalController::moveAll()
     {
         globalSteps++;
         deletedObjs.clear();
-        static int danger = 0;
         bool attacking = false;
         for(auto& entry: objects)
         {
@@ -229,11 +255,7 @@ namespace TankTrouble
                     {
                         deletedObjs.push_back(id);
                         deletedObjs.push_back(shell->id());
-                        if(id == 1)
-                        {
-                            auto* event = new ControlEvent;
-                            controlLoop->removeEventListener(event);
-                        }
+                        restart(1.0);
                     }
                 }
                 if(countdown && shell->countDown() <= 0)
@@ -271,18 +293,18 @@ namespace TankTrouble
         }
     }
 
-    int Controller::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int LocalController::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         int collisionBlock = checkShellBlockCollision(curPos, nextPos);
         if(collisionBlock) return collisionBlock;
         return checkShellTankCollision(curPos, nextPos);
     }
 
-    int Controller::checkShellBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int LocalController::checkShellBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
-        if(nextPos.pos.x() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.x() > WINDOW_WIDTH - 1 - Block::BLOCK_WIDTH)
+        if(nextPos.pos.x() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.x() > GAME_VIEW_WIDTH - 1 - Block::BLOCK_WIDTH)
             return VERTICAL_BORDER_ID;
-        if(nextPos.pos.y() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.y() > WINDOW_HEIGHT - 1 - Block::BLOCK_WIDTH)
+        if(nextPos.pos.y() < Shell::RADIUS + Block::BLOCK_WIDTH || nextPos.pos.y() > GAME_VIEW_HEIGHT - 1 - Block::BLOCK_WIDTH)
             return HORIZON_BORDER_ID;
 
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
@@ -315,7 +337,7 @@ namespace TankTrouble
         return 0;
     }
 
-    int Controller::checkShellTankCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int LocalController::checkShellTankCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         for(int id = MIN_TANK_ID; id <= MAX_TANK_ID; id++)
         {
@@ -330,7 +352,7 @@ namespace TankTrouble
         return 0;
     }
 
-    int Controller::checkTankBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
+    int LocalController::checkTankBlockCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)
     {
         util::Vec grid(MAP_REAL_TO_GRID(curPos.pos.x(), curPos.pos.y()));
         for(int blockId: tankPossibleCollisionBlocks[static_cast<int>(grid.x())][static_cast<int>(grid.y())])
@@ -341,16 +363,16 @@ namespace TankTrouble
                                             nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
                 return blockId;
         }
-        if(util::checkRectRectCollision(90.0, leftBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
-                util::checkRectRectCollision(90.0, rightBorderCenter, 4.0, WINDOW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+        if(util::checkRectRectCollision(90.0, leftBorderCenter, 4.0, GAME_VIEW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
+                util::checkRectRectCollision(90.0, rightBorderCenter, 4.0, GAME_VIEW_HEIGHT, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
             return VERTICAL_BORDER_ID;
-        if(util::checkRectRectCollision(0.0, topBorderCenter, 4.0, WINDOW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
-           util::checkRectRectCollision(0.0, bottomBorderCenter, 4.0, WINDOW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+        if(util::checkRectRectCollision(0.0, topBorderCenter, 4.0, GAME_VIEW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT) ||
+           util::checkRectRectCollision(0.0, bottomBorderCenter, 4.0, GAME_VIEW_WIDTH, nextPos.angle, nextPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
             return VERTICAL_BORDER_ID;
         return 0;
     }
 
-    Object::PosInfo Controller::getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId)
+    Object::PosInfo LocalController::getBouncedPosition(const Object::PosInfo& cur, const Object::PosInfo& next, int blockId)
     {
         Object::PosInfo bounced = next;
         if(blockId < 0)
@@ -372,8 +394,9 @@ namespace TankTrouble
         return bounced;
     }
 
-    void Controller::initBlocks()
+    void LocalController::initBlocks()
     {
+        maze.generate();
         auto blockPositions = maze.getBlockPositions();
         for(const auto& b: blockPositions)
         {

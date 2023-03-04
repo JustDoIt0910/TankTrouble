@@ -8,11 +8,9 @@ namespace TankTrouble
     const static int dx[] = {0, -1, -1, -1, 0, 1, 1, 1};
     const static int dy[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 
-    AStar::AStar():
-        map(MAX_A_STAR_NODE_ID, std::vector<int>(MAX_A_STAR_NODE_ID)){}
-
     void AStar::init(TankTrouble::AStar::BlockList *blocks)
     {
+        map = std::vector(MAX_A_STAR_NODE_ID, std::vector<int>(MAX_A_STAR_NODE_ID));
         for(const auto& entry: *blocks)
         {
             const Block& block = entry.second;
