@@ -26,6 +26,7 @@ namespace TankTrouble
         Controller(),
         tankNum(0),
         globalSteps(0),
+        danger(0),
         smith(new AgentSmith(this)) {initAll();}
 
     LocalController::~LocalController()
@@ -110,7 +111,7 @@ namespace TankTrouble
             smith->getDodgeStrategy(smithPos, globalSteps);
         });
 
-        loop.runEvery(1, [this] () -> void {
+        loop.runEvery(0.8, [this] () -> void {
             Object::PosInfo smithPos, myPos;
             if(!getSmithPosition(smithPos) || !getMyPosition(myPos)) return;
             smith->attack(smithPos, myPos, globalSteps);
@@ -153,16 +154,6 @@ namespace TankTrouble
         }
         return pos;
     }
-
-    void LocalController::dispatchEvent(ev::Event *event) {controlLoop->dispatchEvent(event);}
-
-    LocalController::ObjectListPtr LocalController::getObjects()
-    {
-        std::lock_guard<std::mutex> lg(mu);
-        return snapshot;
-    }
-
-    LocalController::BlockList* LocalController::getBlocks() {return &blocks;}
 
     void LocalController::controlEventHandler(ev::Event *event)
     {
@@ -211,6 +202,7 @@ namespace TankTrouble
 
     void LocalController::moveAll()
     {
+        ev::Timestamp before = ev::Timestamp::now();
         globalSteps++;
         deletedObjs.clear();
         bool attacking = false;
@@ -291,6 +283,8 @@ namespace TankTrouble
                 (*snapshot)[obj->id()] = std::unique_ptr<Object>(
                         new Shell(*dynamic_cast<Shell*>(obj.get())));
         }
+        ev::Timestamp after = ev::Timestamp::now();
+        std::cout << (after - before)<< std::endl;
     }
 
     int LocalController::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)

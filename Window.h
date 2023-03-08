@@ -7,6 +7,7 @@
 #include <gtkmm.h>
 #include <memory>
 #include "view/EntryView.h"
+#include "view/LoginView.h"
 #include "view/GameArea.h"
 #include "Controller.h"
 
@@ -22,10 +23,14 @@ namespace TankTrouble
 
     private:
         EntryView entryView;
-        void on_choose_local();
+        LoginView loginView;
+        void onUserChooseLocal();
+        void onUserChooseOnline();
+        void onUserLogin();
 
         std::unique_ptr<Controller> ctl;
         std::unique_ptr<GameArea> gameArea;
+
         bool KeyUpPressed, KeyDownPressed, KeyLeftPressed, KeyRightPressed;
         bool spacePressed;
     };

@@ -5,7 +5,7 @@
 #ifndef EV_CHANNEL_H
 #define EV_CHANNEL_H
 #include "EventLoop.h"
-#include "../utils/Timestamp.h"
+#include "utils/Timestamp.h"
 #include <sys/epoll.h>
 
 namespace ev::reactor
@@ -36,6 +36,9 @@ namespace ev::reactor
         void disableReading();
         void disableWriting();
         void disableAll();
+
+        [[nodiscard]] bool isReading() const;
+        [[nodiscard]] bool isWriting() const;
 
         void remove();
         void tie(const std::shared_ptr<void>& obj);

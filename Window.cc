@@ -20,14 +20,13 @@ namespace TankTrouble
         set_title("TankTrouble");
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
         set_resizable(false);
-
-        entryView.signal_choose_local().
-            connect(sigc::mem_fun(*this, &Window::on_choose_local));
+        entryView.signal_choose_local().connect(sigc::mem_fun(*this, &Window::onUserChooseLocal));
+        entryView.signal_choose_online().connect(sigc::mem_fun(*this, &Window::onUserChooseOnline));
         add(entryView);
         entryView.show();
     }
 
-    void Window::on_choose_local()
+    void Window::onUserChooseLocal()
     {
         remove();
         ctl = std::make_unique<LocalController>();
@@ -36,6 +35,18 @@ namespace TankTrouble
         gameArea = std::make_unique<GameArea>(ctl.get());
         add(*gameArea);
         gameArea->show();
+    }
+
+    void Window::onUserChooseOnline()
+    {
+        remove();
+        add(loginView);
+        loginView.show();
+    }
+
+    void Window::onUserLogin()
+    {
+
     }
 
     bool Window::on_key_press_event(GdkEventKey* key_event)

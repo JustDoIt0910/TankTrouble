@@ -95,7 +95,7 @@ namespace ev::reactor
         assertInLoopThread();
         if(eventHandling)
         {
-            assert(currentActiveChannel != channel ||
+            assert(currentActiveChannel == channel ||
                 std::find(activeChannels.begin(), activeChannels.end(), channel) == activeChannels.end());
         }
         poller->removeChannel(channel);

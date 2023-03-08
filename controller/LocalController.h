@@ -35,9 +35,6 @@ namespace TankTrouble
         LocalController();
         ~LocalController() override;
         void start() override;
-        ObjectListPtr getObjects() override;
-        void dispatchEvent(ev::Event* event) override;
-        BlockList* getBlocks() override;
 
     private:
         void restart(double delay);
@@ -69,6 +66,7 @@ namespace TankTrouble
         bool getMyPosition(Object::PosInfo& pos);
 
         Maze maze;
+        std::vector<int> deletedObjs;
         std::vector<int> shellPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
         std::vector<int> tankPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
         int tankNum;

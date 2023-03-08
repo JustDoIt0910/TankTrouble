@@ -25,21 +25,17 @@ namespace TankTrouble
 
         typedef std::unordered_map<int, Block> BlockList;
 
-        Controller():
-            started(false),
-            controlLoop(nullptr),
-            snapshot(new ObjectList) {}
+        Controller();
 
         virtual void start() = 0;
-        virtual ObjectListPtr getObjects() = 0;
-        virtual void dispatchEvent(ev::Event* event) = 0;
-        virtual BlockList* getBlocks() = 0;
+        ObjectListPtr getObjects();
+        void dispatchEvent(ev::Event* event);
+        BlockList* getBlocks();
         virtual ~Controller() = default;
 
     protected:
         ObjectList objects;
         ObjectListPtr snapshot;
-        std::vector<int> deletedObjs;
         BlockList blocks;
         std::mutex mu;
         std::condition_variable cv;

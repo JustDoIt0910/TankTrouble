@@ -5,14 +5,15 @@
 #ifndef EV_EPOLLER_H
 #define EV_EPOLLER_H
 #include "EventLoop.h"
-#include "../utils/Timestamp.h"
+#include "utils/Timestamp.h"
+#include "utils/noncopyable.h"
 #include <sys/epoll.h>
 #include <vector>
 #include <map>
 
 namespace ev::reactor
 {
-    class EPoller
+    class EPoller : public noncopyable
     {
     public:
         explicit EPoller(EventLoop* loop);

@@ -100,7 +100,6 @@ namespace TankTrouble
     {
         if(ctl->checkTankBlockCollision(tryPos, tryPos) != 0)
             return false;
-        auto axis = util::getUnitVectors(tryPos.angle);
         return checkWillDie(step, tryPos) == SAFE;
     }
 
@@ -180,7 +179,7 @@ namespace TankTrouble
         int maxDodging = 0;
         int threatNum = std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size()));
         bool stop = false;
-        for(int s = 0; s < 30 && !stop; s++, step++)
+        for(int s = 0; s < 50 && !stop; s++, step++)
         {
             tryPos = Tank::getNextPosition(tryPos, direction, 0, 0);
             if(!checkFeasible(step, tryPos)) break;

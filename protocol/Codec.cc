@@ -1,0 +1,72 @@
+//
+// Created by zr on 23-3-6.
+//
+
+#include "Codec.h"
+
+namespace TankTrouble
+{
+    Codec::Codec()
+    {
+        messages_[MSG_LOGIN] = MessageTemplate({
+            new FieldTemplate<std::string>("nickname")
+        });
+
+        messages_[MSG_NEW_ROOM] = MessageTemplate({
+            new FieldTemplate<std::string>("room_name"),
+            new FieldTemplate<uint8_t>("player_num")
+        });
+
+        messages_[MSG_ROOM_INFO] = MessageTemplate({
+            new ArrayFieldTemplate<StructField<uint8_t, std::string, uint8_t, uint8_t>>("room_infos", {
+                "room_id", "room_name", "room_cap", "room_players"
+            })
+        });
+    }
+
+    void Codec::registerHandler(int messageType, MessageHandler handler)
+    {
+        handlers_[messageType] = std::move(handler);
+    }
+
+    void Codec::sendMessage(const TcpConnectionPtr& conn, int messageType, const Message& message)
+    {
+        Buffer buf;
+        FixHeader header(messageType, message.size());
+        header.toByteArray(&buf);
+        message.toByteArray(&buf);
+        conn->send(buf);
+    }
+
+    Message Codec::getEmptyMessage(int messageType)
+    {
+        if(messages_.find(messageType) == messages_.end())
+            return {};
+        return std::move(messages_[messageType].getMessage());
+    }
+
+    void Codec::handleMessage(const TcpConnectionPtr& conn,
+                              Buffer* buf,
+                              ev::Timestamp receiveTime)
+    {
+        while(true)
+        {
+            if(buf->readableBytes() < HeaderLen)
+                break;
+            FixHeader header = getHeader(buf);
+            if(buf->readableBytes() >= HeaderLen + header.messageLen)
+            {
+                buf->retrieve(HeaderLen);
+                Message message = messages_[header.messageType].getMessage();
+                message.fill(buf);
+                if(handlers_.find(header.messageType) != handlers_.end())
+                {
+                    MessageHandler handler = handlers_[header.messageType];
+                    if(handler)
+                        handler(conn, std::move(message), receiveTime);
+                }
+            }
+            else break;
+        }
+    }
+}

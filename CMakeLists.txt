@@ -7,32 +7,37 @@ set(TANK_TROUBLE_SRC main.cc
         Tank.cc
         Shell.cc
         Block.cc
+        Object.cc
         util/Vec.cc
         util/Math.cc
-        Window.cc
-        view/GameArea.cc
-        Maze.cc
-        controller/LocalController.cc
-        event/ControlEvent.cc
-        Object.cc
         util/Id.cc
+        Maze.cc
+        Controller.cc
+        controller/LocalController.cc
+        controller/OnlineController.cc
+        protocol/Codec.cc
+        event/ControlEvent.cc
+        event/StrategyUpdateEvent.cc
         smithAI/AgentSmith.cc
         smithAI/DodgeStrategy.cc
-        event/StrategyUpdateEvent.cc
         smithAI/AStar.cc
         smithAI/ContactStrategy.cc
         smithAI/AttackStrategy.cc
-        view/EntryView.cc view/EntryView.h view/GameView.cc view/GameView.h)
+        Window.cc
+        view/EntryView.cc
+        view/LoginView.cc
+        view/GameView.cc
+        view/GameArea.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)
 
 set(EV_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/ev/ev)
-set(EV_LIBRARY_DIRS ${CMAKE_BINARY_DIR}/ev/ev/reactor)
+set(EV_LIBRARY_DIRS ${CMAKE_BINARY_DIR}/ev/ev/reactor ${CMAKE_BINARY_DIR}/ev/ev/net)
 add_subdirectory(ev)
 
 include_directories(${GTKMM_INCLUDE_DIRS} ${EV_INCLUDE_DIRS} .)
 link_directories(${GTKMM_LIBRARY_DIRS} ${EV_LIBRARY_DIRS})
-link_libraries(${GTKMM_LIBRARIES} reactor pthread)
+link_libraries(${GTKMM_LIBRARIES} reactor net pthread)
 
 add_executable(TankTrouble ${TANK_TROUBLE_SRC})

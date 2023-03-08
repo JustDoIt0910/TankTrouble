@@ -4,6 +4,7 @@
 
 #ifndef EV_EVENTLOOP_H
 #define EV_EVENTLOOP_H
+#include "utils/noncopyable.h"
 #include <functional>
 #include <memory>
 #include <vector>
@@ -12,6 +13,7 @@
 #include <unordered_map>
 #include <string>
 #include "Timer.h"
+
 
 namespace ev
 {
@@ -25,7 +27,7 @@ namespace ev::reactor
     class EPoller;
     class TimerQueue;
 
-    class EventLoop
+    class EventLoop : public noncopyable
     {
     public:
         typedef std::function<void()> Functor;

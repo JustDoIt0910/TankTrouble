@@ -63,6 +63,10 @@ namespace ev::reactor
         update();
     }
 
+    bool Channel::isReading() const {return interestEvents & ReadEvent;}
+
+    bool Channel::isWriting() const {return interestEvents & WriteEvent;}
+
     void Channel::remove()
     {
         assert(interestEvents == NoneEvent);
