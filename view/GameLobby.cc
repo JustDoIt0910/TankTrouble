@@ -3,6 +3,8 @@
 //
 
 #include "GameLobby.h"
+
+#include <memory>
 #include "controller/OnlineController.h"
 
 namespace TankTrouble
@@ -45,14 +47,22 @@ namespace TankTrouble
     void GameLobby::getRoomInfo()
     {
         roomInfos = std::move(ctl->getRoomInfos());
+        remove(roomList);
         for(auto& item: roomItems)
-            roomList.remove(item);
+            roomList.remove(*item);
         roomItems.clear();
         for(const auto& roomInfo: roomInfos)
-            roomItems.emplace_back(roomInfo.roomName_, roomInfo.playerNum_, roomInfo.roomCap_);
+            roomItems.push_back(std::make_unique<RoomItem>(
+                    roomInfo.roomId_, roomInfo.roomName_,
+                    roomInfo.playerNum_, roomInfo.roomCap_));
+
         for(auto& item: roomItems)
-            roomList.pack_start(item, Gtk::PACK_EXPAND_WIDGET, 20);
-        remove(roomList);
+        {
+            item->signal_join_clicked().
+                    connect(sigc::mem_fun(*this, &GameLobby::onJoinRoom));
+            roomList.pack_start(*item, Gtk::PACK_EXPAND_WIDGET, 20);
+        }
+
         put(roomList, 0, 50);
         show_all_children();
     }
@@ -63,6 +73,11 @@ namespace TankTrouble
         if(name.empty())
             return;
         ctl->createNewRoom(name, newRoomCap);
+    }
+
+    void GameLobby::onJoinRoom(uint8_t roomId)
+    {
+        ctl->joinRoom(roomId);
     }
 
     void GameLobby::capOption1Clicked() {newRoomCap = 2;}

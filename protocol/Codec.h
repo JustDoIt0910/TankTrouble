@@ -11,9 +11,11 @@
 
 #define MSG_LOGIN               0x10
 #define MSG_LOGIN_RESP          0x11
+
 #define MSG_NEW_ROOM            0x20
 #define MSG_GET_ROOM            0x21
 #define MSG_ROOM_INFO           0x22
+#define MSG_JOIN_ROOM           0x23
 
 
 namespace TankTrouble

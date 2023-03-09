@@ -63,6 +63,14 @@ namespace TankTrouble
         client->send(buf);
     }
 
+    void OnlineController::joinRoom(uint8_t roomId)
+    {
+        Message joinRoom = codec.getEmptyMessage(MSG_JOIN_ROOM);
+        joinRoom.setField<Field<uint8_t>>("join_room_id", roomId);
+        Buffer buf = Codec::packMessage(MSG_JOIN_ROOM, joinRoom);
+        client->send(buf);
+    }
+
     OnlineUser OnlineController::getUserInfo()
     {
         std::lock_guard<std::mutex> lg(userInfoMu);

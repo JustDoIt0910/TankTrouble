@@ -23,12 +23,13 @@ set(TANK_TROUBLE_SRC main.cc
         smithAI/AStar.cc
         smithAI/ContactStrategy.cc
         smithAI/AttackStrategy.cc
-        Window.cc
+        view/component/RoomItem.cc
         view/EntryView.cc
         view/LoginView.cc
         view/GameLobby.cc
         view/GameView.cc
-        view/GameArea.cc)
+        view/GameArea.cc
+        Window.cc)
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM gtkmm-3.0)

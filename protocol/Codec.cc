@@ -27,6 +27,10 @@ namespace TankTrouble
                 "room_id", "room_name", "room_cap", "room_players"
             })
         });
+
+        messages_[MSG_JOIN_ROOM] = MessageTemplate({
+               new FieldTemplate<uint8_t>("join_room_id")
+        });
     }
 
     void Codec::registerHandler(int messageType, MessageHandler handler)

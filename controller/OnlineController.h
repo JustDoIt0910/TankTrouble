@@ -24,6 +24,7 @@ namespace TankTrouble
         void start() override;
         void login(const std::string& name);
         void createNewRoom(const std::string& name, uint8_t cap);
+        void joinRoom(uint8_t roomId);
         OnlineUser getUserInfo();
         std::vector<RoomInfo> getRoomInfos();
 
