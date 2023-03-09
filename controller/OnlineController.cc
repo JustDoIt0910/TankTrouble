@@ -54,11 +54,11 @@ namespace TankTrouble
         client->connect();
     }
 
-    void OnlineController::createNewRoom(const std::string &name)
+    void OnlineController::createNewRoom(const std::string &name, uint8_t cap)
     {
         Message newRoom = codec.getEmptyMessage(MSG_NEW_ROOM);
         newRoom.setField<Field<std::string>>("room_name", name);
-        newRoom.setField<Field<uint8_t>>("player_num", 3);
+        newRoom.setField<Field<uint8_t>>("player_num", cap);
         Buffer buf = Codec::packMessage(MSG_NEW_ROOM, newRoom);
         client->send(buf);
     }

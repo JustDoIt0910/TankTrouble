@@ -23,7 +23,7 @@ namespace TankTrouble
         ~OnlineController() override;
         void start() override;
         void login(const std::string& name);
-        void createNewRoom(const std::string& name);
+        void createNewRoom(const std::string& name, uint8_t cap);
         OnlineUser getUserInfo();
         std::vector<RoomInfo> getRoomInfos();
 

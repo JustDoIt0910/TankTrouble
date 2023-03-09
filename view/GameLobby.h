@@ -17,17 +17,25 @@ namespace TankTrouble
         RoomItem(const std::string& name, uint8_t playerNum, uint8_t capacity)
         {
             set_orientation(Gtk::ORIENTATION_HORIZONTAL);
+
+            roomNameLabel.set_size_request(30, 20);
             roomNameLabel.set_text(name);
-            pack_start(roomNameLabel, Gtk::PACK_EXPAND_WIDGET, 20);
+            pack_start(roomNameLabel, Gtk::PACK_EXPAND_PADDING, 50);
+
             char buf[10] = {0};
             sprintf(buf, "%u/%u", playerNum, capacity);
+            playersLabel.set_size_request(30, 20);
             playersLabel.set_text(buf);
-            pack_start(playersLabel, Gtk::PACK_EXPAND_WIDGET, 20);
+            pack_start(playersLabel, Gtk::PACK_EXPAND_PADDING, 50);
+
             std::string status = playerNum < capacity ? "空闲" : "对局中";
+            statusLabel.set_size_request(30, 20);
             statusLabel.set_text(status);
-            pack_start(statusLabel, Gtk::PACK_EXPAND_WIDGET, 20);
+            pack_start(statusLabel, Gtk::PACK_EXPAND_PADDING, 50);
+
+            joinBtn.set_size_request(30, 20);
             joinBtn.set_label("加入");
-            pack_start(joinBtn, Gtk::PACK_EXPAND_WIDGET, 20);
+            pack_start(joinBtn, Gtk::PACK_EXPAND_PADDING, 50);
             show_all_children();
         }
 
@@ -52,6 +60,15 @@ namespace TankTrouble
         Gtk::Label userInfoLabel;
         Gtk::Entry newRoomEntry;
         Gtk::Button newRoomBtn;
+
+        Gtk::RadioButton capOption1;
+        void capOption1Clicked();
+        Gtk::RadioButton capOption2;
+        void capOption2Clicked();
+        Gtk::RadioButton capOption3;
+        void capOption3Clicked();
+        uint8_t newRoomCap;
+
         Gtk::Box roomList;
         std::vector<RoomInfo> roomInfos;
         std::vector<RoomItem> roomItems;
