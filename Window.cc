@@ -8,6 +8,7 @@
 #include "defs.h"
 #include "event/ControlEvent.h"
 #include "controller/LocalController.h"
+#include "controller/OnlineController.h"
 
 namespace TankTrouble
 {
@@ -20,8 +21,10 @@ namespace TankTrouble
         set_title("TankTrouble");
         set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT);
         set_resizable(false);
+        add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
         entryView.signal_choose_local().connect(sigc::mem_fun(*this, &Window::onUserChooseLocal));
         entryView.signal_choose_online().connect(sigc::mem_fun(*this, &Window::onUserChooseOnline));
+        loginView.signal_login_clicked().connect(sigc::mem_fun(*this, &Window::onUserLogin));
         add(entryView);
         entryView.show();
     }
@@ -31,7 +34,6 @@ namespace TankTrouble
         remove();
         ctl = std::make_unique<LocalController>();
         ctl->start();
-        add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
         gameArea = std::make_unique<GameArea>(ctl.get());
         add(*gameArea);
         gameArea->show();
@@ -40,13 +42,16 @@ namespace TankTrouble
     void Window::onUserChooseOnline()
     {
         remove();
+        ctl = std::make_unique<OnlineController>(this, Inet4Address("127.0.0.1", 9999));
+        ctl->start();
         add(loginView);
         loginView.show();
     }
 
-    void Window::onUserLogin()
+    void Window::onUserLogin(const std::string& nickname)
     {
-
+        auto* onlineController = dynamic_cast<OnlineController*>(ctl.get());
+        onlineController->login(nickname);
     }
 
     bool Window::on_key_press_event(GdkEventKey* key_event)
@@ -81,7 +86,7 @@ namespace TankTrouble
             auto* event = new ControlEvent(ControlEvent::Fire);
             ctl->dispatchEvent(event);
         }
-        return true;
+        return Gtk::Window::on_key_press_event(key_event);
     }
 
     bool Window::on_key_release_event(GdkEventKey* key_event)
@@ -111,6 +116,7 @@ namespace TankTrouble
             ctl->dispatchEvent(event);
         }
         else if(key_event->keyval == GDK_KEY_space) {spacePressed = false;}
+        return Gtk::Window::on_key_release_event(key_event);
         return true;
     }
 }

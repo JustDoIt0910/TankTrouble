@@ -19,4 +19,11 @@ namespace TankTrouble
     void Controller::dispatchEvent(ev::Event* event) {controlLoop->dispatchEvent(event);}
 
     Controller::BlockList* Controller::getBlocks() {return &blocks;}
+
+    Controller::~Controller()
+    {
+        controlLoop->quit();
+        if(controlThread.joinable())
+            controlThread.join();
+    }
 }

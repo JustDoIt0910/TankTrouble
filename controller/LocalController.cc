@@ -29,12 +29,8 @@ namespace TankTrouble
         danger(0),
         smith(new AgentSmith(this)) {initAll();}
 
-    LocalController::~LocalController()
-    {
-        controlLoop->quit();
-        if(controlThread.joinable())
-            controlThread.join();
-    }
+
+    LocalController::~LocalController() = default;
 
     void LocalController::start()
     {

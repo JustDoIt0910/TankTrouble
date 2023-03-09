@@ -12,6 +12,11 @@ namespace TankTrouble
             new FieldTemplate<std::string>("nickname")
         });
 
+        messages_[MSG_LOGIN_RESP] = MessageTemplate({
+                new FieldTemplate<std::string>("nickname"),
+                new FieldTemplate<uint32_t>("score")
+        });
+
         messages_[MSG_NEW_ROOM] = MessageTemplate({
             new FieldTemplate<std::string>("room_name"),
             new FieldTemplate<uint8_t>("player_num")

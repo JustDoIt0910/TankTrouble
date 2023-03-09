@@ -13,10 +13,14 @@ namespace TankTrouble
     {
     public:
         LoginView();
+        sigc::signal<void, std::string> signal_login_clicked();
 
     private:
+        void login();
+
         Gtk::Button loginBtn;
         Gtk::Entry nicknameEntry;
+        sigc::signal<void, std::string> login_s;
     };
 }
 

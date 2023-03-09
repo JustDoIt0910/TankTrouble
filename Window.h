@@ -26,7 +26,7 @@ namespace TankTrouble
         LoginView loginView;
         void onUserChooseLocal();
         void onUserChooseOnline();
-        void onUserLogin();
+        void onUserLogin(const std::string& nickname);
 
         std::unique_ptr<Controller> ctl;
         std::unique_ptr<GameArea> gameArea;

@@ -26,6 +26,7 @@ set(TANK_TROUBLE_SRC main.cc
         Window.cc
         view/EntryView.cc
         view/LoginView.cc
+        view/GameLobby.cc
         view/GameView.cc
         view/GameArea.cc)
 

@@ -31,7 +31,7 @@ namespace TankTrouble
         ObjectListPtr getObjects();
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
-        virtual ~Controller() = default;
+        virtual ~Controller();
 
     protected:
         ObjectList objects;
