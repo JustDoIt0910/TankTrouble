@@ -19,6 +19,8 @@ namespace TankTrouble
     {
         codec.registerHandler(MSG_LOGIN_RESP,
                               std::bind(&OnlineController::onLoginSuccess, this, _1, _2, _3));
+        codec.registerHandler(MSG_ROOM_INFO,
+                              std::bind(&OnlineController::onRoomsUpdate, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -52,6 +54,27 @@ namespace TankTrouble
         client->connect();
     }
 
+    void OnlineController::createNewRoom(const std::string &name)
+    {
+        Message newRoom = codec.getEmptyMessage(MSG_NEW_ROOM);
+        newRoom.setField<Field<std::string>>("room_name", name);
+        newRoom.setField<Field<uint8_t>>("player_num", 3);
+        Buffer buf = Codec::packMessage(MSG_NEW_ROOM, newRoom);
+        client->send(buf);
+    }
+
+    OnlineUser OnlineController::getUserInfo()
+    {
+        std::lock_guard<std::mutex> lg(userInfoMu);
+        return userInfo;
+    }
+
+    std::vector<RoomInfo> OnlineController::getRoomInfos()
+    {
+        std::lock_guard<std::mutex> lg(roomInfosMu);
+        return std::move(roomInfos);
+    }
+
     void OnlineController::sendLoginMessage(const TcpConnectionPtr& conn)
     {
         Message login = codec.getEmptyMessage(MSG_LOGIN);
@@ -70,5 +93,24 @@ namespace TankTrouble
         std::lock_guard<std::mutex> lg(userInfoMu);
         userInfo.nickname_ = name;
         userInfo.score_ = score;
+        interface->notifyLoginSuccess();
+    }
+
+    void OnlineController::onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        auto rooms = message.getArray<StructField<uint8_t, std::string, uint8_t, uint8_t>>("room_infos");
+        std::vector<RoomInfo> newRoomInfos;
+        for(int i = 0; i < rooms.length(); i++)
+        {
+            auto id = rooms.get(i).get<uint8_t>("room_id");
+            auto name = rooms.get(i).get<std::string>("room_name");
+            auto cap = rooms.get(i).get<uint8_t>("room_cap");
+            auto players = rooms.get(i).get<uint8_t>("room_players");
+            RoomStatus status = players < cap ? Waiting : Playing;
+            newRoomInfos.emplace_back(id, name, cap, players, status);
+        }
+        std::lock_guard<std::mutex> lg(roomInfosMu);
+        roomInfos = std::move(newRoomInfos);
+        interface->notifyRoomUpdate();
     }
 }

@@ -34,12 +34,18 @@ namespace TankTrouble
         handlers_[messageType] = std::move(handler);
     }
 
-    void Codec::sendMessage(const TcpConnectionPtr& conn, int messageType, const Message& message)
+    Buffer Codec::packMessage(int messageType, const Message& message)
     {
         Buffer buf;
         FixHeader header(messageType, message.size());
         header.toByteArray(&buf);
         message.toByteArray(&buf);
+        return std::move(buf);
+    }
+
+    void Codec::sendMessage(const TcpConnectionPtr& conn, int messageType, const Message& message)
+    {
+        Buffer buf = packMessage(messageType, message);
         conn->send(buf);
     }
 

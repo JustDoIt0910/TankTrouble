@@ -244,6 +244,7 @@ namespace TankTrouble
                         deletedObjs.push_back(id);
                         deletedObjs.push_back(shell->id());
                         restart(1.0);
+                        break;
                     }
                 }
                 if(countdown && shell->countDown() <= 0)
@@ -280,7 +281,7 @@ namespace TankTrouble
                         new Shell(*dynamic_cast<Shell*>(obj.get())));
         }
         ev::Timestamp after = ev::Timestamp::now();
-        std::cout << (after - before)<< std::endl;
+        //std::cout << (after - before)<< std::endl;
     }
 
     int LocalController::checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos)

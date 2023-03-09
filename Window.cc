@@ -5,6 +5,8 @@
 #include "Window.h"
 
 #include <memory>
+#include "view/GameArea.h"
+#include "view/GameLobby.h"
 #include "defs.h"
 #include "event/ControlEvent.h"
 #include "controller/LocalController.h"
@@ -26,8 +28,16 @@ namespace TankTrouble
         entryView.signal_choose_online().connect(sigc::mem_fun(*this, &Window::onUserChooseOnline));
         loginView.signal_login_clicked().connect(sigc::mem_fun(*this, &Window::onUserLogin));
         add(entryView);
+
+        loginSuccessNotifier.connect(sigc::mem_fun(*this, &Window::onLoginSuccess));
+        roomUpdateNotifier.connect(sigc::mem_fun(*this, &Window::onRoomsUpdate));
+
         entryView.show();
     }
+
+    void Window::notifyLoginSuccess() {loginSuccessNotifier.emit();}
+
+    void Window::notifyRoomUpdate() {roomUpdateNotifier.emit();}
 
     void Window::onUserChooseLocal()
     {
@@ -53,6 +63,23 @@ namespace TankTrouble
         auto* onlineController = dynamic_cast<OnlineController*>(ctl.get());
         onlineController->login(nickname);
     }
+
+
+    void Window::onLoginSuccess()
+    {
+        remove();
+        auto* onlineController = dynamic_cast<OnlineController*>(ctl.get());
+        gameLobby = std::make_unique<GameLobby>(onlineController);
+        add(*gameLobby);
+        gameLobby->show();
+    }
+
+    void Window::onRoomsUpdate()
+    {
+        if(gameLobby)
+            gameLobby->getRoomInfo();
+    }
+
 
     bool Window::on_key_press_event(GdkEventKey* key_event)
     {
@@ -117,6 +144,7 @@ namespace TankTrouble
         }
         else if(key_event->keyval == GDK_KEY_space) {spacePressed = false;}
         return Gtk::Window::on_key_release_event(key_event);
-        return true;
     }
+
+    Window::~Window() = default;
 }

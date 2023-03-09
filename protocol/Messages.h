@@ -87,7 +87,7 @@ namespace TankTrouble
         void fill(Buffer* buf) override
         {
             memcpy(&data_, buf->peek(), sizeof(T));
-            networkToHost(data_);
+            data_ = networkToHost(data_);
             buf->retrieve(sizeof(T));
         };
 

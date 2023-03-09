@@ -23,11 +23,15 @@ namespace TankTrouble
         ~OnlineController() override;
         void start() override;
         void login(const std::string& name);
+        void createNewRoom(const std::string& name);
+        OnlineUser getUserInfo();
+        std::vector<RoomInfo> getRoomInfos();
 
     private:
         void run();
         void sendLoginMessage(const TcpConnectionPtr& conn);
         void onLoginSuccess(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
         Window* interface;
         Inet4Address serverAddress;
@@ -37,6 +41,8 @@ namespace TankTrouble
 
         std::mutex userInfoMu;
         OnlineUser userInfo;
+        std::mutex roomInfosMu;
+        std::vector<RoomInfo> roomInfos;
     };
 }
 

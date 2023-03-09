@@ -8,31 +8,46 @@
 #include <memory>
 #include "view/EntryView.h"
 #include "view/LoginView.h"
-#include "view/GameArea.h"
 #include "Controller.h"
 
 namespace TankTrouble
 {
+    class GameArea;
+    class GameLobby;
+
     class Window : public Gtk::Window
     {
     public:
         Window();
-        ~Window() override = default;
+        ~Window() override;
         bool on_key_press_event(GdkEventKey* key_event) override;
         bool on_key_release_event(GdkEventKey* key_event) override;
 
+        void notifyLoginSuccess();
+        void notifyRoomUpdate();
+
     private:
-        EntryView entryView;
-        LoginView loginView;
+
         void onUserChooseLocal();
         void onUserChooseOnline();
         void onUserLogin(const std::string& nickname);
 
+        void onLoginSuccess();
+        void onRoomsUpdate();
+
         std::unique_ptr<Controller> ctl;
         std::unique_ptr<GameArea> gameArea;
+        std::unique_ptr<GameLobby> gameLobby;
+        EntryView entryView;
+        LoginView loginView;
 
-        bool KeyUpPressed, KeyDownPressed, KeyLeftPressed, KeyRightPressed;
-        bool spacePressed;
+        Glib::Dispatcher loginSuccessNotifier;
+        Glib::Dispatcher roomUpdateNotifier;
+        Glib::Dispatcher gameBeginNotifier;
+
+        bool KeyUpPressed, KeyDownPressed,
+        KeyLeftPressed, KeyRightPressed,
+        spacePressed;
     };
 }
 

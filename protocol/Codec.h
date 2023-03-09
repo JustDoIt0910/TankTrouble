@@ -28,6 +28,7 @@ namespace TankTrouble
         void handleMessage(const TcpConnectionPtr& conn,
                            Buffer* buf,
                            ev::Timestamp receiveTime);
+        static Buffer packMessage(int messageType, const Message& message);
         static void sendMessage(const TcpConnectionPtr& conn, int messageType, const Message& message);
         Message getEmptyMessage(int messageType);
         void registerHandler(int messageType, MessageHandler handler);
