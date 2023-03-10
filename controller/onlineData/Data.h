@@ -29,6 +29,15 @@ namespace TankTrouble
                 roomId_(id), roomName_(name), roomCap_(cap), playerNum_(playerNum),
                 roomStatus_(status) {}
     };
+
+    struct PlayerInfo
+    {
+        std::string nickname_;
+        uint32_t score_;
+
+        explicit PlayerInfo(const std::string& nickname): nickname_(nickname), score_(0) {}
+        PlayerInfo() = default;
+    };
 }
 
 #endif //TANK_TROUBLE_DATA_H

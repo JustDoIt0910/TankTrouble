@@ -35,6 +35,7 @@ namespace TankTrouble
         void onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onJoinRoomRespond(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
         Window* interface;
         Inet4Address serverAddress;
@@ -44,8 +45,13 @@ namespace TankTrouble
 
         std::mutex userInfoMu;
         OnlineUser userInfo;
-        std::mutex roomInfosMu;
-        std::vector<RoomInfo> roomInfos;
+
+        std::mutex roomsInfoMu;
+        std::vector<RoomInfo> roomsInfo;
+
+        std::mutex playersInfoMu;
+        std::unordered_map<int, PlayerInfo> playersInfo;
+
         uint8_t joinedRoomId;
         uint8_t joinStatus;
     };

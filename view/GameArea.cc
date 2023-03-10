@@ -4,7 +4,6 @@
 
 #include "GameArea.h"
 #include "defs.h"
-#include "util/Vec.h"
 #include <glibmm/main.h>
 
 namespace TankTrouble
@@ -49,18 +48,6 @@ namespace TankTrouble
 
     bool GameArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
-//        drawAStarGrid(cr);
-//        if(!ctl->res.empty())
-//        {
-//            cr->move_to(MAP_A_STAR_X_TO_REAL_X(ctl->res.begin()->first),
-//                        MAP_A_STAR_Y_TO_REAL_Y(ctl->res.begin()->second));
-//            for(const auto& p: ctl->res)
-//            {
-//                cr->line_to(MAP_A_STAR_X_TO_REAL_X(p.first), MAP_A_STAR_Y_TO_REAL_Y(p.second));
-//            }
-//        }
-//        cr->stroke();
-
         drawOutline(cr);
         Controller::BlockList* blocks = ctl->getBlocks();
         for(auto& block: *blocks)

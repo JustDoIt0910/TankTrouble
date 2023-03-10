@@ -27,6 +27,8 @@ namespace TankTrouble
                               std::bind(&OnlineController::onJoinRoomRespond, this, _1, _2, _3));
         codec.registerHandler(MSG_GAME_ON,
                               std::bind(&OnlineController::onGameOn, this, _1, _2, _3));
+        codec.registerHandler(MSG_UPDATE_BLOCKS,
+                              std::bind(&OnlineController::onBlocksUpdate, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -87,12 +89,12 @@ namespace TankTrouble
 
     std::vector<RoomInfo> OnlineController::getRoomInfos(uint8_t* currentRoomId, uint8_t* currentJoinStatus)
     {
-        std::lock_guard<std::mutex> lg(roomInfosMu);
+        std::lock_guard<std::mutex> lg(roomsInfoMu);
         *currentRoomId = joinedRoomId;
         *currentJoinStatus = joinStatus;
         joinedRoomId = 0;
         joinStatus = 0;
-        return roomInfos;
+        return roomsInfo;
     }
 
     void OnlineController::sendLoginMessage(const TcpConnectionPtr& conn)
@@ -129,8 +131,8 @@ namespace TankTrouble
             RoomStatus status = players < cap ? Waiting : Playing;
             newRoomInfos.emplace_back(id, name, cap, players, status);
         }
-        std::lock_guard<std::mutex> lg(roomInfosMu);
-        roomInfos = std::move(newRoomInfos);
+        std::lock_guard<std::mutex> lg(roomsInfoMu);
+        roomsInfo = std::move(newRoomInfos);
         interface->notifyRoomUpdate();
     }
 
@@ -138,7 +140,7 @@ namespace TankTrouble
     {
         uint8_t roomId = message.getField<Field<uint8_t>>("join_room_id").get();
         uint8_t code = message.getField<Field<uint8_t>>("operation_status").get();
-        std::lock_guard<std::mutex> lg(roomInfosMu);
+        std::lock_guard<std::mutex> lg(roomsInfoMu);
         joinStatus = code;
         if(code == Codec::JOIN_ROOM_SUCCESS)
             joinedRoomId = roomId;
@@ -149,11 +151,30 @@ namespace TankTrouble
     void OnlineController::onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
     {
         auto players = message.getArray<StructField<uint8_t, std::string>>("players_info");
+        std::lock_guard<std::mutex> lg(playersInfoMu);
         for(int i = 0; i < players.length(); i++)
         {
             auto playerId = players.get(i).get<uint8_t>("player_id");
             auto playerNickname = players.get(i).get<std::string>("player_nickname");
-            printf("id = %u, nickname = %s\n", playerId, playerNickname.c_str());
+            playersInfo[playerId] = PlayerInfo(playerNickname);
+        }
+        interface->notifyGameOn();
+    }
+
+    void OnlineController::onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        auto blocksData = message.getArray<StructField<uint8_t, uint64_t, uint64_t>>("blocks");
+        std::lock_guard<std::mutex> lg(blocksMu);
+        blocks.clear();
+        for(int i = 0; i < blocksData.length(); i++)
+        {
+            bool horizon = (blocksData.get(i).get<uint8_t>("is_horizon") == 1);
+            auto x_ = blocksData.get(i).get<uint64_t>("center_x");
+            auto y_ = blocksData.get(i).get<uint64_t>("center_y");
+            double x, y;
+            memcpy(&x, &x_, sizeof(double));
+            memcpy(&y, &y_, sizeof(double));
+            blocks[i + 1] = Block(horizon, util::Vec(x, y));
         }
     }
 }

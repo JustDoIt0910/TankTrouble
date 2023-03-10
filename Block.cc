@@ -5,6 +5,7 @@
 #include "Block.h"
 #include "view/GameArea.h"
 #include "Shell.h"
+#include "defs.h"
 #include <cassert>
 
 namespace TankTrouble
@@ -14,36 +15,8 @@ namespace TankTrouble
     {
         assert(_start.y() == _end.y() || _start.x() == _end.x());
         horizon = _start.y() == _end.y();
-        if(horizon)
-        {
-            if(_start.x() > _end.x())
-                _start.swap(_end);
-            tl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
-                            _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
-            bl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
-                            _start.y() + static_cast<double>(BLOCK_WIDTH) / 2);
-            tr = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
-                            _end.y() - static_cast<double>(BLOCK_WIDTH) / 2);
-            br = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
-                            _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
-            _width = static_cast<int>(bl.y() - tl.y());
-            _height = static_cast<int>(tr.x() - tl.x());
-        }
-        else
-        {
-            if(_start.y() > _end.y())
-                _start.swap(_end);
-            tl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
-                            _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
-            tr = util::Vec(_start.x() + static_cast<double>(BLOCK_WIDTH) / 2,
-                            _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
-            bl = util::Vec(_end.x() - static_cast<double>(BLOCK_WIDTH) / 2,
-                            _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
-            br = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
-                            _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
-            _height = static_cast<int>(bl.y() - tl.y());
-            _width = static_cast<int>(tr.x() - tl.x());
-        }
+        calculate();
+
         _center = util::Vec((tl.x() + tr.x()) / 2, (tl.y() + bl.y()) / 2);
         util::Vec btl(tl.x() - Shell::RADIUS, tl.y() - Shell::RADIUS);
         util::Vec btr(tr.x() + Shell::RADIUS, tr.y() - Shell::RADIUS);
@@ -53,6 +26,55 @@ namespace TankTrouble
         _border[1] = std::make_pair(bbl, bbr);
         _border[2] = std::make_pair(btl, bbl);
         _border[3] = std::make_pair(btr, bbr);
+    }
+
+    Block::Block(bool isHorizon, const util::Vec& center): horizon(isHorizon)
+    {
+        if(horizon)
+        {
+            _start = util::Vec(center.x() - (GRID_SIZE / 2), center.y());
+            _end = util::Vec(center.x() + (GRID_SIZE / 2), center.y());
+        }
+        else
+        {
+            _start = util::Vec(center.x(), center.y() - (GRID_SIZE / 2));
+            _end = util::Vec(center.x(), center.y() + (GRID_SIZE / 2));
+        }
+        calculate();
+    }
+
+    void Block::calculate()
+    {
+        if(horizon)
+        {
+            if(_start.x() > _end.x())
+                _start.swap(_end);
+            tl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
+                           _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
+            bl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
+                           _start.y() + static_cast<double>(BLOCK_WIDTH) / 2);
+            tr = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
+                           _end.y() - static_cast<double>(BLOCK_WIDTH) / 2);
+            br = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
+                           _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
+            _width = static_cast<int>(bl.y() - tl.y());
+            _height = static_cast<int>(tr.x() - tl.x());
+        }
+        else
+        {
+            if(_start.y() > _end.y())
+                _start.swap(_end);
+            tl = util::Vec(_start.x() - static_cast<double>(BLOCK_WIDTH) / 2,
+                           _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
+            tr = util::Vec(_start.x() + static_cast<double>(BLOCK_WIDTH) / 2,
+                           _start.y() - static_cast<double>(BLOCK_WIDTH) / 2);
+            bl = util::Vec(_end.x() - static_cast<double>(BLOCK_WIDTH) / 2,
+                           _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
+            br = util::Vec(_end.x() + static_cast<double>(BLOCK_WIDTH) / 2,
+                           _end.y() + static_cast<double>(BLOCK_WIDTH) / 2);
+            _height = static_cast<int>(bl.y() - tl.y());
+            _width = static_cast<int>(tr.x() - tl.x());
+        }
     }
 
     void Block::draw(const Cairo::RefPtr<Cairo::Context>& cr)

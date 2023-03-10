@@ -5,7 +5,7 @@
 #include "Window.h"
 
 #include <memory>
-#include "view/GameArea.h"
+#include "view/GameView.h"
 #include "view/GameLobby.h"
 #include "defs.h"
 #include "event/ControlEvent.h"
@@ -31,6 +31,7 @@ namespace TankTrouble
 
         loginSuccessNotifier.connect(sigc::mem_fun(*this, &Window::onLoginSuccess));
         roomUpdateNotifier.connect(sigc::mem_fun(*this, &Window::onRoomsUpdate));
+        gameOnNotifier.connect(sigc::mem_fun(*this, &Window::onGameBegin));
 
         entryView.show();
     }
@@ -39,14 +40,16 @@ namespace TankTrouble
 
     void Window::notifyRoomUpdate() {roomUpdateNotifier.emit();}
 
+    void Window::notifyGameOn() {gameOnNotifier.emit();}
+
     void Window::onUserChooseLocal()
     {
         remove();
         ctl = std::make_unique<LocalController>();
         ctl->start();
-        gameArea = std::make_unique<GameArea>(ctl.get());
-        add(*gameArea);
-        gameArea->show();
+        gameView = std::make_unique<GameView>(ctl.get());
+        add(*gameView);
+        gameView->show();
     }
 
     void Window::onUserChooseOnline()
@@ -80,6 +83,13 @@ namespace TankTrouble
             gameLobby->getRoomInfo();
     }
 
+    void Window::onGameBegin()
+    {
+        remove();
+        gameView = std::make_unique<GameView>(ctl.get());
+        add(*gameView);
+        gameView->show();
+    }
 
     bool Window::on_key_press_event(GdkEventKey* key_event)
     {

@@ -15,6 +15,7 @@ namespace TankTrouble
     public:
         Block() = default;
         Block(int id, const util::Vec& start, const util::Vec& end);
+        Block(bool isHorizon, const util::Vec& center);
         void draw(const Cairo::RefPtr<Cairo::Context>& cr);
         [[nodiscard]] bool isHorizon() const;
         [[nodiscard]] util::Vec center() const;
@@ -27,6 +28,8 @@ namespace TankTrouble
         const static int BLOCK_WIDTH = 4;
 
     private:
+        void calculate();
+
         int _id;
         util::Vec _center;
         util::Vec tl, tr, bl, br;

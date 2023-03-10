@@ -12,7 +12,7 @@
 
 namespace TankTrouble
 {
-    class GameArea;
+    class GameView;
     class GameLobby;
 
     class Window : public Gtk::Window
@@ -25,6 +25,7 @@ namespace TankTrouble
 
         void notifyLoginSuccess();
         void notifyRoomUpdate();
+        void notifyGameOn();
 
     private:
 
@@ -34,16 +35,17 @@ namespace TankTrouble
 
         void onLoginSuccess();
         void onRoomsUpdate();
+        void onGameBegin();
 
         std::unique_ptr<Controller> ctl;
-        std::unique_ptr<GameArea> gameArea;
+        std::unique_ptr<GameView> gameView;
         std::unique_ptr<GameLobby> gameLobby;
         EntryView entryView;
         LoginView loginView;
 
         Glib::Dispatcher loginSuccessNotifier;
         Glib::Dispatcher roomUpdateNotifier;
-        Glib::Dispatcher gameBeginNotifier;
+        Glib::Dispatcher gameOnNotifier;
 
         bool KeyUpPressed, KeyDownPressed,
         KeyLeftPressed, KeyRightPressed,
