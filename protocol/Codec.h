@@ -19,6 +19,8 @@
 #define MSG_JOIN_ROOM_RESP      0x24
 
 #define MSG_GAME_ON             0x30
+#define MSG_UPDATE_BLOCKS       0x31
+#define MSG_UPDATE_OBJECTS      0x32
 
 
 namespace TankTrouble

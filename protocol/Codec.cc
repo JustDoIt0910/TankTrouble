@@ -42,6 +42,12 @@ namespace TankTrouble
                  "player_id", "player_nickname"
             })
         });
+
+        messages_[MSG_UPDATE_BLOCKS] = MessageTemplate({
+           new ArrayFieldTemplate<StructField<uint8_t, uint64_t, uint64_t>>("blocks", {
+                   "is_horizon", "center_x", "center_y"
+           })
+        });
     }
 
     void Codec::registerHandler(int messageType, MessageHandler handler)

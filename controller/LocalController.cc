@@ -194,8 +194,6 @@ namespace TankTrouble
         smith->ballisticsPredict(shells, globalSteps);
     }
 
-    static int danger = 0;
-
     void LocalController::moveAll()
     {
         ev::Timestamp before = ev::Timestamp::now();
@@ -389,6 +387,7 @@ namespace TankTrouble
     {
         maze.generate();
         auto blockPositions = maze.getBlockPositions();
+        std::lock_guard<std::mutex> lg(blocksMu);
         for(const auto& b: blockPositions)
         {
             Block block(util::Id::getBlockId(), b.first, b.second);

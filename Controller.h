@@ -36,6 +36,7 @@ namespace TankTrouble
     protected:
         ObjectList objects;
         ObjectListPtr snapshot;
+        std::mutex blocksMu;
         BlockList blocks;
         std::mutex mu;
         std::condition_variable cv;

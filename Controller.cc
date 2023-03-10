@@ -18,7 +18,11 @@ namespace TankTrouble
 
     void Controller::dispatchEvent(ev::Event* event) {controlLoop->dispatchEvent(event);}
 
-    Controller::BlockList* Controller::getBlocks() {return &blocks;}
+    Controller::BlockList* Controller::getBlocks()
+    {
+        std::lock_guard<std::mutex> lg(blocksMu);
+        return &blocks;
+    }
 
     Controller::~Controller()
     {
