@@ -26,13 +26,15 @@ namespace TankTrouble
         void createNewRoom(const std::string& name, uint8_t cap);
         void joinRoom(uint8_t roomId);
         OnlineUser getUserInfo();
-        std::vector<RoomInfo> getRoomInfos();
+        std::vector<RoomInfo> getRoomInfos(uint8_t* currentRoomId, uint8_t* currentJoinStatus);
 
     private:
         void run();
         void sendLoginMessage(const TcpConnectionPtr& conn);
         void onLoginSuccess(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onJoinRoomRespond(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
         Window* interface;
         Inet4Address serverAddress;
@@ -44,6 +46,8 @@ namespace TankTrouble
         OnlineUser userInfo;
         std::mutex roomInfosMu;
         std::vector<RoomInfo> roomInfos;
+        uint8_t joinedRoomId;
+        uint8_t joinStatus;
     };
 }
 

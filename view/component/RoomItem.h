@@ -12,7 +12,9 @@ namespace TankTrouble
     class RoomItem : public Gtk::Box
     {
     public:
-        RoomItem(uint8_t roomId, const std::string& name, uint8_t playerNum, uint8_t capacity);
+        RoomItem(uint8_t roomId, const std::string& name,
+                 uint8_t playerNum, uint8_t capacity,
+                 bool enableJoin);
         sigc::signal<void, uint8_t> signal_join_clicked();
 
     private:

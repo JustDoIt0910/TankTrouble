@@ -46,15 +46,27 @@ namespace TankTrouble
 
     void GameLobby::getRoomInfo()
     {
-        roomInfos = std::move(ctl->getRoomInfos());
+        uint8_t joinedRoomId_, joinStatus;
+        roomInfos = std::move(ctl->getRoomInfos(&joinedRoomId_, &joinStatus));
+        if(joinStatus == Codec::ERR_IS_IN_ROOM)
+            std::cout << "ERR_IS_IN_ROOM" << std::endl;
+        else if(joinStatus == Codec::ERR_ROOM_NOT_EXIST)
+            std::cout << "ERR_ROOM_NOT_EXIST" << std::endl;
+        else if(joinStatus == Codec::JOIN_ROOM_SUCCESS)
+            joinedRoomId = joinedRoomId_;
+
         remove(roomList);
         for(auto& item: roomItems)
             roomList.remove(*item);
         roomItems.clear();
         for(const auto& roomInfo: roomInfos)
+        {
+            bool disableJoin = (joinedRoomId == roomInfo.roomId_);
             roomItems.push_back(std::make_unique<RoomItem>(
                     roomInfo.roomId_, roomInfo.roomName_,
-                    roomInfo.playerNum_, roomInfo.roomCap_));
+                    roomInfo.playerNum_, roomInfo.roomCap_,
+                    !disableJoin));
+        }
 
         for(auto& item: roomItems)
         {

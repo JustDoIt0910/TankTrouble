@@ -39,6 +39,7 @@ namespace TankTrouble
         Gtk::Box roomList;
         std::vector<RoomInfo> roomInfos;
         std::vector<std::unique_ptr<RoomItem>> roomItems;
+        uint8_t joinedRoomId;
     };
 }
 

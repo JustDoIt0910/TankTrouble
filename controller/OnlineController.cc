@@ -15,12 +15,18 @@ namespace TankTrouble
     OnlineController::OnlineController(Window* win, Inet4Address serverAddr):
         Controller(),
         interface(win),
-        serverAddress(serverAddr)
+        serverAddress(serverAddr),
+        joinedRoomId(0),
+        joinStatus(0)
     {
         codec.registerHandler(MSG_LOGIN_RESP,
                               std::bind(&OnlineController::onLoginSuccess, this, _1, _2, _3));
         codec.registerHandler(MSG_ROOM_INFO,
                               std::bind(&OnlineController::onRoomsUpdate, this, _1, _2, _3));
+        codec.registerHandler(MSG_JOIN_ROOM_RESP,
+                              std::bind(&OnlineController::onJoinRoomRespond, this, _1, _2, _3));
+        codec.registerHandler(MSG_GAME_ON,
+                              std::bind(&OnlineController::onGameOn, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -47,6 +53,8 @@ namespace TankTrouble
         loop.loop();
         controlLoop = nullptr;
     }
+
+    /********************************* Interface for main window *********************************/
 
     void OnlineController::login(const std::string& name)
     {
@@ -77,10 +85,14 @@ namespace TankTrouble
         return userInfo;
     }
 
-    std::vector<RoomInfo> OnlineController::getRoomInfos()
+    std::vector<RoomInfo> OnlineController::getRoomInfos(uint8_t* currentRoomId, uint8_t* currentJoinStatus)
     {
         std::lock_guard<std::mutex> lg(roomInfosMu);
-        return std::move(roomInfos);
+        *currentRoomId = joinedRoomId;
+        *currentJoinStatus = joinStatus;
+        joinedRoomId = 0;
+        joinStatus = 0;
+        return roomInfos;
     }
 
     void OnlineController::sendLoginMessage(const TcpConnectionPtr& conn)
@@ -120,5 +132,28 @@ namespace TankTrouble
         std::lock_guard<std::mutex> lg(roomInfosMu);
         roomInfos = std::move(newRoomInfos);
         interface->notifyRoomUpdate();
+    }
+
+    void OnlineController::onJoinRoomRespond(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        uint8_t roomId = message.getField<Field<uint8_t>>("join_room_id").get();
+        uint8_t code = message.getField<Field<uint8_t>>("operation_status").get();
+        std::lock_guard<std::mutex> lg(roomInfosMu);
+        joinStatus = code;
+        if(code == Codec::JOIN_ROOM_SUCCESS)
+            joinedRoomId = roomId;
+        else
+            interface->notifyRoomUpdate();
+    }
+
+    void OnlineController::onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        auto players = message.getArray<StructField<uint8_t, std::string>>("players_info");
+        for(int i = 0; i < players.length(); i++)
+        {
+            auto playerId = players.get(i).get<uint8_t>("player_id");
+            auto playerNickname = players.get(i).get<std::string>("player_nickname");
+            printf("id = %u, nickname = %s\n", playerId, playerNickname.c_str());
+        }
     }
 }

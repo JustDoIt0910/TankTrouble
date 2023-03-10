@@ -32,6 +32,7 @@ namespace ev::net
         {
             loop_->runInLoop([this, &conn] () {
                 conn->setCloseCallback([] (const TcpConnectionPtr& conn) {});
+                conn->setConnectionCallback([] (const TcpConnectionPtr& conn) {});
                 latch_.countDown();
             });
         }

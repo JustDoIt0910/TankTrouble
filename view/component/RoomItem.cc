@@ -7,7 +7,9 @@
 namespace TankTrouble
 {
 
-    RoomItem::RoomItem(uint8_t roomId, const std::string& name, uint8_t playerNum, uint8_t capacity):
+    RoomItem::RoomItem(uint8_t roomId, const std::string& name,
+                       uint8_t playerNum, uint8_t capacity,
+                       bool enableJoin):
         roomId(roomId)
     {
         set_orientation(Gtk::ORIENTATION_HORIZONTAL);
@@ -29,6 +31,7 @@ namespace TankTrouble
 
         joinBtn.set_size_request(30, 20);
         joinBtn.set_label("加入");
+        joinBtn.set_sensitive(enableJoin);
         joinBtn.signal_clicked().connect(sigc::mem_fun(*this, &RoomItem::onJoinClicked));
         pack_start(joinBtn, Gtk::PACK_EXPAND_PADDING, 50);
     }

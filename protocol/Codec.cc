@@ -29,7 +29,18 @@ namespace TankTrouble
         });
 
         messages_[MSG_JOIN_ROOM] = MessageTemplate({
-               new FieldTemplate<uint8_t>("join_room_id")
+            new FieldTemplate<uint8_t>("join_room_id")
+        });
+
+        messages_[MSG_JOIN_ROOM_RESP] = MessageTemplate({
+            new FieldTemplate<uint8_t>("join_room_id"),
+            new FieldTemplate<uint8_t>("operation_status")
+        });
+
+        messages_[MSG_GAME_ON] = MessageTemplate({
+            new ArrayFieldTemplate<StructField<uint8_t, std::string>>("players_info", {
+                 "player_id", "player_nickname"
+            })
         });
     }
 

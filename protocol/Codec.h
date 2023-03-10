@@ -16,6 +16,9 @@
 #define MSG_GET_ROOM            0x21
 #define MSG_ROOM_INFO           0x22
 #define MSG_JOIN_ROOM           0x23
+#define MSG_JOIN_ROOM_RESP      0x24
+
+#define MSG_GAME_ON             0x30
 
 
 namespace TankTrouble
@@ -23,6 +26,15 @@ namespace TankTrouble
     class Codec
     {
     public:
+
+        enum StatusCode
+        {
+            // join room
+            JOIN_ROOM_SUCCESS = 1,
+            ERR_IS_IN_ROOM,
+            ERR_ROOM_NOT_EXIST
+        };
+
         typedef std::function<void(const TcpConnectionPtr& conn,
                 Message,
                 ev::Timestamp receiveTime)> MessageHandler;
