@@ -5,6 +5,8 @@
 #include "OnlineController.h"
 #include "Window.h"
 #include "util/Id.h"
+#include "Shell.h"
+#include "event/ControlEvent.h"
 #include "net/TcpClient.h"
 
 static std::unordered_map<int, Color> colorMap = {
@@ -57,6 +59,9 @@ namespace TankTrouble
         client = std::make_unique<TcpClient>(controlLoop, serverAddress);
         client->setMessageCallback(std::bind(&Codec::handleMessage, &codec, _1, _2, _3));
         client->setConnectionCallback(std::bind(&OnlineController::sendLoginMessage, this, _1));
+        auto* controlEvent = new ControlEvent;
+        loop.addEventListener(controlEvent,
+                              [this](ev::Event* event){this->controlEventHandler(event);});
         {
             std::unique_lock<std::mutex> lk(mu);
             started = true;
@@ -112,6 +117,42 @@ namespace TankTrouble
         Message login = codec.getEmptyMessage(MSG_LOGIN);
         login.setField<Field<std::string>>("nickname", nickname);
         Codec::sendMessage(conn, MSG_LOGIN, login);
+    }
+
+    void OnlineController::sendControlMessage(uint8_t action, uint8_t enable)
+    {
+        Message control = codec.getEmptyMessage(MSG_CONTROL);
+        control.setField<Field<uint8_t>>("action", action);
+        control.setField<Field<uint8_t>>("enable", enable);
+        Buffer buf = Codec::packMessage(MSG_CONTROL, control);
+        client->send(buf);
+    }
+
+    void OnlineController::controlEventHandler(ev::Event *event)
+    {
+        auto* ce = dynamic_cast<ControlEvent*>(event);
+        std::cout << ce->operation() << std::endl;
+        switch (ce->operation())
+        {
+            case ControlEvent::Forward:
+                sendControlMessage(ControlEvent::Forward, 1); break;
+            case ControlEvent::Backward:
+                sendControlMessage(ControlEvent::Backward, 1); break;
+            case ControlEvent::RotateCW:
+                sendControlMessage(ControlEvent::RotateCW, 1); break;
+            case ControlEvent::RotateCCW:
+                sendControlMessage(ControlEvent::RotateCCW, 1); break;
+            case ControlEvent::StopForward:
+                sendControlMessage(ControlEvent::Forward, 0); break;
+            case ControlEvent::StopBackward:
+                sendControlMessage(ControlEvent::Backward, 0); break;
+            case ControlEvent::StopRotateCW:
+                sendControlMessage(ControlEvent::RotateCW, 0); break;
+            case ControlEvent::StopRotateCCW:
+                sendControlMessage(ControlEvent::RotateCCW, 0); break;
+            case ControlEvent::Fire:
+                sendControlMessage(ControlEvent::Fire, 1); break;
+        }
     }
 
     /********************************** message handlers **************************************/
@@ -209,6 +250,16 @@ namespace TankTrouble
             memcpy(&y, &y_, sizeof(double));
             memcpy(&angle, &angle_, sizeof(double));
             (*snapshot)[tankId] = std::make_unique<Tank>(tankId, util::Vec(x, y), angle, colorMap[tankId]);
+        }
+        for(int i = 0; i < shells.length(); i++)
+        {
+            auto x_ = shells.get(i).get<uint64_t>("x");
+            auto y_ = shells.get(i).get<uint64_t>("y");
+            double x, y;
+            memcpy(&x, &x_, sizeof(double));
+            memcpy(&y, &y_, sizeof(double));
+            (*snapshot)[uselessShellId] = std::make_unique<Shell>(
+                    uselessShellId++, util::Vec(x, y), 0.0, 0);
         }
     }
 }

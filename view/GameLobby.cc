@@ -11,7 +11,8 @@ namespace TankTrouble
 {
     GameLobby::GameLobby(OnlineController *ctl):
         ctl(ctl),
-        newRoomCap(2)
+        newRoomCap(2),
+        joinedRoomId(0)
     {
         getUserInfo();
         roomList.set_orientation(Gtk::ORIENTATION_VERTICAL);

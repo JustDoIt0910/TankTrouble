@@ -102,6 +102,7 @@ namespace ev::net
             std::lock_guard<std::mutex> lg(mu);
             connection_ = conn;
         }
+        conn->setTcpNoDelay(true);
         conn->connectEstablished();
     }
 

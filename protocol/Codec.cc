@@ -57,6 +57,11 @@ namespace TankTrouble
                     "x", "y"
             })
         });
+
+        messages_[MSG_CONTROL] = MessageTemplate({
+            new FieldTemplate<uint8_t>("action"),
+            new FieldTemplate<uint8_t>("enable")
+        });
     }
 
     void Codec::registerHandler(int messageType, MessageHandler handler)

@@ -22,6 +22,7 @@
 #define MSG_UPDATE_BLOCKS       0x31
 #define MSG_UPDATE_OBJECTS      0x32
 
+#define MSG_CONTROL             0x40
 
 namespace TankTrouble
 {

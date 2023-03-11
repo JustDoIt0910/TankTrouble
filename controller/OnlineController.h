@@ -31,6 +31,8 @@ namespace TankTrouble
     private:
         void run();
         void sendLoginMessage(const TcpConnectionPtr& conn);
+        void sendControlMessage(uint8_t action, uint8_t enable);
+        void controlEventHandler(ev::Event *event);
 
         void onLoginSuccess(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);

@@ -14,9 +14,8 @@ namespace TankTrouble
         //前进，停止，后退，顺时针调头，逆时针调头
         enum Operation
         {
-            Forward, Backward, RotateCW, RotateCCW,
-            StopForward, StopBackward, StopRotateCW, StopRotateCCW,
-            Fire
+            Forward, Backward, RotateCW, RotateCCW, Fire,
+            StopForward, StopBackward, StopRotateCW, StopRotateCCW
         };
 
         explicit ControlEvent(Operation op);
