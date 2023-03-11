@@ -40,6 +40,8 @@ namespace TankTrouble
         void onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onScoresUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+
 
         Window* interface;
         Inet4Address serverAddress;

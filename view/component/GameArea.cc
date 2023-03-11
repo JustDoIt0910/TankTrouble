@@ -3,7 +3,6 @@
 //
 
 #include "GameArea.h"
-#include "defs.h"
 #include <glibmm/main.h>
 
 namespace TankTrouble

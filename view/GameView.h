@@ -14,7 +14,7 @@ namespace TankTrouble
     {
     public:
         explicit GameView(Controller* ctl);
-        void getPlayersInfo();
+        bool getPlayersInfo();
 
     private:
         Controller* ctl;

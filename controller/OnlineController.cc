@@ -41,6 +41,8 @@ namespace TankTrouble
                               std::bind(&OnlineController::onBlocksUpdate, this, _1, _2, _3));
         codec.registerHandler(MSG_UPDATE_OBJECTS,
                               std::bind(&OnlineController::onObjectsUpdate, this, _1, _2, _3));
+        codec.registerHandler(MSG_UPDATE_SCORES,
+                              std::bind(&OnlineController::onScoresUpdate, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -260,6 +262,18 @@ namespace TankTrouble
             memcpy(&y, &y_, sizeof(double));
             (*snapshot)[uselessShellId] = std::make_unique<Shell>(
                     uselessShellId++, util::Vec(x, y), 0.0, 0);
+        }
+    }
+
+    void OnlineController::onScoresUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        auto scores = message.getArray<StructField<uint8_t, uint32_t>>("scores");
+        std::lock_guard<std::mutex> lg(playersInfoMu);
+        for(int i = 0; i < scores.length(); i++)
+        {
+            auto playerId = scores.get(i).get<uint8_t>("player_id");
+            auto playerScore = scores.get(i).get<uint32_t>("score");
+            playersInfo[playerId].score_ = playerScore;
         }
     }
 }

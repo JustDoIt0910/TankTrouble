@@ -21,6 +21,7 @@
 #define MSG_GAME_ON             0x30
 #define MSG_UPDATE_BLOCKS       0x31
 #define MSG_UPDATE_OBJECTS      0x32
+#define MSG_UPDATE_SCORES       0x33
 
 #define MSG_CONTROL             0x40
 

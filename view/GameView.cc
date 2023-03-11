@@ -14,10 +14,12 @@ namespace TankTrouble
         gameArea.set_size_request(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT);
         put(gameArea, 0, 0);
         gameArea.show();
-        getPlayersInfo();
+        Glib::signal_timeout().connect(
+                sigc::mem_fun(*this, &GameView::getPlayersInfo),
+                30);
     }
 
-    void GameView::getPlayersInfo()
+    bool GameView::getPlayersInfo()
     {
         for(auto& item : playerInfoItems)
             remove(item);
@@ -31,5 +33,6 @@ namespace TankTrouble
             put(playerInfoItems[i], GAME_VIEW_WIDTH, i * gap + 50);
             playerInfoItems[i].show();
         }
+        return true;
     }
 }
