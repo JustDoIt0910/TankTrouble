@@ -3,12 +3,14 @@
 //
 #include "Object.h"
 
+#include <utility>
+
 namespace TankTrouble
 {
-    Object::Object(const util::Vec& pos, double angle, const Color& c, int id):
+    Object::Object(const util::Vec& pos, double angle, Color c, int id):
             posInfo(pos, angle),
             movingStatus(MOVING_STATIONARY),
-            color(c),
+            color(std::move(c)),
             _id(id){}
 
     void Object::resetNextPosition(const PosInfo& next) {nextPos = next;}
@@ -17,5 +19,5 @@ namespace TankTrouble
 
     int Object::id() const {return _id;}
 
-    int Object::getMovingStatus() {return movingStatus;}
+    int Object::getMovingStatus() const {return movingStatus;}
 }

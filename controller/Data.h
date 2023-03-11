@@ -34,8 +34,10 @@ namespace TankTrouble
     {
         std::string nickname_;
         uint32_t score_;
+        Color color_;
 
-        explicit PlayerInfo(const std::string& nickname): nickname_(nickname), score_(0) {}
+        explicit PlayerInfo(const std::string& nickname, Color color):
+            nickname_(nickname), color_(std::move(color)), score_(0) {}
         PlayerInfo() = default;
     };
 }

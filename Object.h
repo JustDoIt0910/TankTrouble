@@ -5,6 +5,7 @@
 #ifndef TANK_TROUBLE_OBJECT_H
 #define TANK_TROUBLE_OBJECT_H
 #include "util/Vec.h"
+#include "defs.h"
 #include <cairomm/context.h>
 #include <vector>
 #include <cfloat>
@@ -20,10 +21,6 @@ namespace TankTrouble
     enum ObjMovingStep {TANK_MOVING_STEP = 1, SHELL_MOVING_STEP = 1};
     enum ObjType {OBJ_TANK, OBJ_SHELL};
     typedef uint8_t MovingStatus;
-    typedef std::vector<double> Color;
-    const static Color BLACK = {0, 0, 0};
-    const static Color RED = {1.0, 0.3, 0.3};
-    const static Color GREY = {0.3, 0.3, 0.3};
 
     class Object {
     public:
@@ -33,7 +30,7 @@ namespace TankTrouble
 
             PosInfo& operator=(const PosInfo& info) = default;
 
-            bool operator==(const PosInfo& info){return (pos == info.pos && angle == info.angle);}
+            bool operator==(const PosInfo& info) const {return (pos == info.pos && angle == info.angle);}
 
             PosInfo(): PosInfo(util::Vec(0.0, 0.0), 0){}
 
@@ -46,7 +43,7 @@ namespace TankTrouble
             double angle;
         };
 
-        Object(const util::Vec& pos, double angle, const Color& c, int id);
+        Object(const util::Vec& pos, double angle, Color c, int id);
         virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr) = 0;
         virtual PosInfo getNextPosition(int movingStep, int rotationStep) = 0;
         virtual void moveToNextPosition() = 0;
@@ -54,7 +51,7 @@ namespace TankTrouble
         PosInfo getCurrentPosition();
         virtual ObjType type() = 0;
         [[nodiscard]] int id() const;
-        [[nodiscard]] int getMovingStatus();
+        [[nodiscard]] int getMovingStatus() const;
         virtual ~Object() = default;
 
     protected:

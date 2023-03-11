@@ -13,7 +13,7 @@ namespace TankTrouble
 
     class Tank : public Object {
     public:
-        Tank(const util::Vec&, double, const Color& color);
+        Tank(int id, const util::Vec&, double angle, const Color& color);
         Tank(const Tank& t) = default;
         void draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
         PosInfo getNextPosition(int movingStep, int rotationStep) override;

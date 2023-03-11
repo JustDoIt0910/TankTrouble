@@ -44,9 +44,18 @@ namespace TankTrouble
         });
 
         messages_[MSG_UPDATE_BLOCKS] = MessageTemplate({
-           new ArrayFieldTemplate<StructField<uint8_t, uint64_t, uint64_t>>("blocks", {
+            new ArrayFieldTemplate<StructField<uint8_t, uint64_t, uint64_t>>("blocks", {
                    "is_horizon", "center_x", "center_y"
-           })
+            })
+        });
+
+        messages_[MSG_UPDATE_OBJECTS] = MessageTemplate({
+            new ArrayFieldTemplate<StructField<uint8_t, uint64_t, uint64_t, uint64_t>>("tanks", {
+                    "id", "center_x", "center_y", "angle"
+            }),
+            new ArrayFieldTemplate<StructField<uint64_t, uint64_t>>("shells", {
+                    "x", "y"
+            })
         });
     }
 

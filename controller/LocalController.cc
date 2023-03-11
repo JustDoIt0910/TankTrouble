@@ -66,9 +66,9 @@ namespace TankTrouble
     {
         initBlocks();
         std::vector<Object::PosInfo> pos = getRandomPositions(2);
-        std::unique_ptr<Object> tank(new Tank(pos[0].pos, pos[0].angle, RED));
+        std::unique_ptr<Object> tank(new Tank(util::Id::getTankId(), pos[0].pos, pos[0].angle, RED));
         objects[tank->id()] = std::move(tank);
-        std::unique_ptr<Object> smithTank(new Tank(pos[1].pos, pos[1].angle, GREY));
+        std::unique_ptr<Object> smithTank(new Tank(util::Id::getTankId(), pos[1].pos, pos[1].angle, GREY));
         objects[smithTank->id()] = std::move(smithTank);
         tankNum += 2;
         danger = 0;

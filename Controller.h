@@ -7,11 +7,13 @@
 
 #include <memory>
 #include <unordered_map>
+#include <map>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
 #include "Tank.h"
 #include "Block.h"
+#include "controller/Data.h"
 #include "reactor/EventLoop.h"
 
 namespace TankTrouble
@@ -31,13 +33,19 @@ namespace TankTrouble
         ObjectListPtr getObjects();
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
+        std::vector<PlayerInfo> getPlaysInfo();
+
         virtual ~Controller();
 
     protected:
-        ObjectList objects;
         ObjectListPtr snapshot;
-        std::mutex blocksMu;
+
         BlockList blocks;
+        std::mutex blocksMu;
+
+        std::mutex playersInfoMu;
+        std::map<int, PlayerInfo> playersInfo;
+
         std::mutex mu;
         std::condition_variable cv;
         bool started;

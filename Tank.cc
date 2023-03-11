@@ -3,15 +3,15 @@
 //
 
 #include "Tank.h"
-#include "view/GameArea.h"
+#include "view/component/GameArea.h"
 #include "Shell.h"
 #include "util/Math.h"
 #include "util/Id.h"
 
 namespace TankTrouble
 {
-    Tank::Tank(const util::Vec& p, double angle, const Color& c):
-        Object(p, angle, c, util::Id::getTankId()),
+    Tank::Tank(int id, const util::Vec& p, double angle, const Color& c):
+        Object(p, angle, c, id),
         remainBullets(5)
     {
         recalculate();
@@ -136,7 +136,7 @@ namespace TankTrouble
     {
         remainBullets--;
         util::Vec shellPos = util::polar2Cart(posInfo.angle, 15, posInfo.pos);
-        return new Shell(shellPos, posInfo.angle, _id);
+        return new Shell(util::Id::getShellId(), shellPos, posInfo.angle, _id);
     }
 
     void Tank::getRemainShell() {remainBullets++;}

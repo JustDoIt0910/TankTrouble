@@ -23,12 +23,13 @@ set(TANK_TROUBLE_SRC main.cc
         smithAI/AStar.cc
         smithAI/ContactStrategy.cc
         smithAI/AttackStrategy.cc
-        view/component/RoomItem.cc
         view/EntryView.cc
         view/LoginView.cc
         view/GameLobby.cc
         view/GameView.cc
-        view/GameArea.cc
+        view/component/GameArea.cc
+        view/component/RoomItem.cc
+        view/component/PlayerInfoItem.cc
         Window.cc)
 
 find_package(PkgConfig)

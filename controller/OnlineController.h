@@ -5,7 +5,7 @@
 #ifndef TANK_TROUBLE_ONLINE_CONTROLLER_H
 #define TANK_TROUBLE_ONLINE_CONTROLLER_H
 #include "Controller.h"
-#include "onlineData/Data.h"
+#include "Data.h"
 #include "protocol/Codec.h"
 
 using namespace ev::net;
@@ -31,11 +31,13 @@ namespace TankTrouble
     private:
         void run();
         void sendLoginMessage(const TcpConnectionPtr& conn);
+
         void onLoginSuccess(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onRoomsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onJoinRoomRespond(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
         Window* interface;
         Inet4Address serverAddress;
@@ -48,9 +50,6 @@ namespace TankTrouble
 
         std::mutex roomsInfoMu;
         std::vector<RoomInfo> roomsInfo;
-
-        std::mutex playersInfoMu;
-        std::unordered_map<int, PlayerInfo> playersInfo;
 
         uint8_t joinedRoomId;
         uint8_t joinStatus;

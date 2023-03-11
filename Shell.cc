@@ -9,8 +9,8 @@
 namespace TankTrouble
 {
     const double Shell::RADIUS = 2.5;
-    Shell::Shell(const util::Vec& p, double angle, int tankId):
-        Object(p, angle, BLACK, util::Id::getShellId()),
+    Shell::Shell(int id, const util::Vec& p, double angle, int tankId):
+        Object(p, angle, BLACK, id),
         _tankId(tankId),
         _ttl(INITIAL_TTL)
     {movingStatus = MOVING_FORWARD;}

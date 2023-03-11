@@ -24,6 +24,15 @@ namespace TankTrouble
         return &blocks;
     }
 
+    std::vector<PlayerInfo> Controller::getPlaysInfo()
+    {
+        std::vector<PlayerInfo> info;
+        std::lock_guard<std::mutex> lg(playersInfoMu);
+        for(const auto& entry: playersInfo)
+            info.push_back(entry.second);
+        return std::move(info);
+    }
+
     Controller::~Controller()
     {
         controlLoop->quit();

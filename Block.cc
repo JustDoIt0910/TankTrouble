@@ -3,7 +3,7 @@
 //
 
 #include "Block.h"
-#include "view/GameArea.h"
+#include "view/component/GameArea.h"
 #include "Shell.h"
 #include "defs.h"
 #include <cassert>

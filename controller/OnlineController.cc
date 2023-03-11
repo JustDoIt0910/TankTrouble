@@ -4,7 +4,15 @@
 
 #include "OnlineController.h"
 #include "Window.h"
+#include "util/Id.h"
 #include "net/TcpClient.h"
+
+static std::unordered_map<int, Color> colorMap = {
+        {1, RED},
+        {2, BLUE},
+        {3, GREEN},
+        {4, YELLOW}
+};
 
 namespace TankTrouble
 {
@@ -29,6 +37,8 @@ namespace TankTrouble
                               std::bind(&OnlineController::onGameOn, this, _1, _2, _3));
         codec.registerHandler(MSG_UPDATE_BLOCKS,
                               std::bind(&OnlineController::onBlocksUpdate, this, _1, _2, _3));
+        codec.registerHandler(MSG_UPDATE_OBJECTS,
+                              std::bind(&OnlineController::onObjectsUpdate, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -156,7 +166,7 @@ namespace TankTrouble
         {
             auto playerId = players.get(i).get<uint8_t>("player_id");
             auto playerNickname = players.get(i).get<std::string>("player_nickname");
-            playersInfo[playerId] = PlayerInfo(playerNickname);
+            playersInfo[playerId] = PlayerInfo(playerNickname, colorMap[playerId]);
         }
         interface->notifyGameOn();
     }
@@ -175,6 +185,30 @@ namespace TankTrouble
             memcpy(&x, &x_, sizeof(double));
             memcpy(&y, &y_, sizeof(double));
             blocks[i + 1] = Block(horizon, util::Vec(x, y));
+        }
+    }
+
+    void OnlineController::onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        std::lock_guard<std::mutex> lg(mu);
+        if(!snapshot.unique())
+            snapshot.reset(new ObjectList);
+        assert(snapshot.unique());
+        snapshot->clear();
+        int uselessShellId = MAX_TANK_ID + 1;
+        auto tanks = message.getArray<StructField<uint8_t, uint64_t, uint64_t, uint64_t>>("tanks");
+        auto shells = message.getArray<StructField<uint64_t, uint64_t>>("shells");
+        for(int i = 0; i < tanks.length(); i++)
+        {
+            int tankId = tanks.get(i).get<uint8_t>("id");
+            auto x_ = tanks.get(i).get<uint64_t>("center_x");
+            auto y_ = tanks.get(i).get<uint64_t>("center_y");
+            auto angle_ = tanks.get(i).get<uint64_t>("angle");
+            double x, y, angle;
+            memcpy(&x, &x_, sizeof(double));
+            memcpy(&y, &y_, sizeof(double));
+            memcpy(&angle, &angle_, sizeof(double));
+            (*snapshot)[tankId] = std::make_unique<Tank>(tankId, util::Vec(x, y), angle, colorMap[tankId]);
         }
     }
 }

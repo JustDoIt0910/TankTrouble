@@ -11,7 +11,7 @@ namespace TankTrouble
     class Shell : public Object
     {
     public:
-        Shell(const util::Vec& p, double angle, int tankId);
+        Shell(int id, const util::Vec& p, double angle, int tankId);
         Shell(const Shell& s) = default;
         ~Shell() override = default;
         ObjType type() override;
