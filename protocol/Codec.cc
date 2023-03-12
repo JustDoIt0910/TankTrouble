@@ -37,6 +37,10 @@ namespace TankTrouble
             new FieldTemplate<uint8_t>("operation_status")
         });
 
+        messages_[MSG_QUIT_ROOM] = MessageTemplate({
+            new FieldTemplate<std::string>("msg")
+        });
+
         messages_[MSG_GAME_ON] = MessageTemplate({
             new ArrayFieldTemplate<StructField<uint8_t, std::string>>("players_info", {
                  "player_id", "player_nickname"
@@ -62,6 +66,10 @@ namespace TankTrouble
             new ArrayFieldTemplate<StructField<uint8_t, uint32_t>>("scores", {
                    "player_id", "score"
             })
+        });
+
+        messages_[MSG_GAME_OFF] = MessageTemplate({
+            new FieldTemplate<std::string>("msg")
         });
 
         messages_[MSG_CONTROL] = MessageTemplate({

@@ -15,11 +15,16 @@ namespace TankTrouble
     public:
         explicit GameView(Controller* ctl);
         bool getPlayersInfo();
+        sigc::signal<void> signal_quit_game();
 
     private:
+        void onQuit();
+
         Controller* ctl;
         GameArea gameArea;
         std::vector<PlayerInfoItem> playerInfoItems;
+        Gtk::Button quitBtn;
+        sigc::signal<void> quit_s;
     };
 }
 

@@ -13,10 +13,13 @@ namespace TankTrouble
     {
         gameArea.set_size_request(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT);
         put(gameArea, 0, 0);
-        gameArea.show();
+        quitBtn.set_label("退出");
+        quitBtn.signal_clicked().connect(sigc::mem_fun(*this, &GameView::onQuit));
+        put(quitBtn, GAME_VIEW_WIDTH + 10, GAME_VIEW_HEIGHT - 20);
         Glib::signal_timeout().connect(
                 sigc::mem_fun(*this, &GameView::getPlayersInfo),
                 30);
+        show_all_children();
     }
 
     bool GameView::getPlayersInfo()
@@ -34,5 +37,13 @@ namespace TankTrouble
             playerInfoItems[i].show();
         }
         return true;
+    }
+
+    sigc::signal<void> GameView::signal_quit_game() {return quit_s;}
+
+    void GameView::onQuit()
+    {
+        ctl->quitGame();
+        quit_s.emit();
     }
 }

@@ -67,6 +67,7 @@ namespace ev::net
         if(::setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY,
                         &opt, static_cast<socklen_t>(sizeof(opt))) < 0)
         {
+            int a;
             // TODO handle error
         }
     }

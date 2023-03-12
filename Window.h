@@ -26,6 +26,7 @@ namespace TankTrouble
         void notifyLoginSuccess();
         void notifyRoomUpdate();
         void notifyGameOn();
+        void notifyGameOff();
 
     private:
 
@@ -36,6 +37,7 @@ namespace TankTrouble
         void onLoginSuccess();
         void onRoomsUpdate();
         void onGameBegin();
+        void onGameOff();
 
         std::unique_ptr<Controller> ctl;
         std::unique_ptr<GameView> gameView;
@@ -46,6 +48,7 @@ namespace TankTrouble
         Glib::Dispatcher loginSuccessNotifier;
         Glib::Dispatcher roomUpdateNotifier;
         Glib::Dispatcher gameOnNotifier;
+        Glib::Dispatcher gameOffNotifier;
 
         bool KeyUpPressed, KeyDownPressed,
         KeyLeftPressed, KeyRightPressed,

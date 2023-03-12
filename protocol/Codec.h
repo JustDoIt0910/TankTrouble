@@ -13,15 +13,16 @@
 #define MSG_LOGIN_RESP          0x11
 
 #define MSG_NEW_ROOM            0x20
-#define MSG_GET_ROOM            0x21
-#define MSG_ROOM_INFO           0x22
-#define MSG_JOIN_ROOM           0x23
-#define MSG_JOIN_ROOM_RESP      0x24
+#define MSG_ROOM_INFO           0x21
+#define MSG_JOIN_ROOM           0x22
+#define MSG_JOIN_ROOM_RESP      0x23
+#define MSG_QUIT_ROOM           0x24
 
 #define MSG_GAME_ON             0x30
 #define MSG_UPDATE_BLOCKS       0x31
 #define MSG_UPDATE_OBJECTS      0x32
 #define MSG_UPDATE_SCORES       0x33
+#define MSG_GAME_OFF            0x34
 
 #define MSG_CONTROL             0x40
 

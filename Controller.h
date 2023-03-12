@@ -34,6 +34,7 @@ namespace TankTrouble
         void dispatchEvent(ev::Event* event);
         BlockList* getBlocks();
         std::vector<PlayerInfo> getPlaysInfo();
+        virtual void quitGame() {}
 
         virtual ~Controller();
 

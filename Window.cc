@@ -32,6 +32,7 @@ namespace TankTrouble
         loginSuccessNotifier.connect(sigc::mem_fun(*this, &Window::onLoginSuccess));
         roomUpdateNotifier.connect(sigc::mem_fun(*this, &Window::onRoomsUpdate));
         gameOnNotifier.connect(sigc::mem_fun(*this, &Window::onGameBegin));
+        gameOffNotifier.connect(sigc::mem_fun(*this, &Window::onGameOff));
 
         entryView.show();
     }
@@ -41,6 +42,8 @@ namespace TankTrouble
     void Window::notifyRoomUpdate() {roomUpdateNotifier.emit();}
 
     void Window::notifyGameOn() {gameOnNotifier.emit();}
+
+    void Window::notifyGameOff() {gameOffNotifier.emit();}
 
     void Window::onUserChooseLocal()
     {
@@ -88,7 +91,19 @@ namespace TankTrouble
         remove();
         gameView = std::make_unique<GameView>(ctl.get());
         add(*gameView);
+        gameView->signal_quit_game().
+            connect(sigc::mem_fun(*this, &Window::onGameOff));
         gameView->show();
+    }
+
+    void Window::onGameOff()
+    {
+        if(!gameLobby)
+            return;
+        remove();
+        add(*gameLobby);
+        gameLobby->show();
+        gameLobby->getRoomInfo();
     }
 
     bool Window::on_key_press_event(GdkEventKey* key_event)

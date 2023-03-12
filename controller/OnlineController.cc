@@ -43,6 +43,8 @@ namespace TankTrouble
                               std::bind(&OnlineController::onObjectsUpdate, this, _1, _2, _3));
         codec.registerHandler(MSG_UPDATE_SCORES,
                               std::bind(&OnlineController::onScoresUpdate, this, _1, _2, _3));
+        codec.registerHandler(MSG_GAME_OFF,
+                              std::bind(&OnlineController::onGameOff, this, _1, _2, _3));
     }
 
     OnlineController::~OnlineController() = default;
@@ -95,6 +97,14 @@ namespace TankTrouble
         Message joinRoom = codec.getEmptyMessage(MSG_JOIN_ROOM);
         joinRoom.setField<Field<uint8_t>>("join_room_id", roomId);
         Buffer buf = Codec::packMessage(MSG_JOIN_ROOM, joinRoom);
+        client->send(buf);
+    }
+
+    void OnlineController::quitGame()
+    {
+        Message quitRoom = codec.getEmptyMessage(MSG_QUIT_ROOM);
+        quitRoom.setField<Field<std::string>>("msg", "quit");
+        Buffer buf = Codec::packMessage(MSG_QUIT_ROOM, quitRoom);
         client->send(buf);
     }
 
@@ -275,5 +285,13 @@ namespace TankTrouble
             auto playerScore = scores.get(i).get<uint32_t>("score");
             playersInfo[playerId].score_ = playerScore;
         }
+    }
+
+    void OnlineController::onGameOff(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    {
+        std::string msg = message.getField<Field<std::string>>("msg").get();
+        if(msg != "off")
+            return;
+        interface->notifyGameOff();
     }
 }

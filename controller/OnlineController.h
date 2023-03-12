@@ -22,6 +22,7 @@ namespace TankTrouble
         OnlineController(Window* win, Inet4Address serverAddr);
         ~OnlineController() override;
         void start() override;
+        void quitGame() override;
         void login(const std::string& name);
         void createNewRoom(const std::string& name, uint8_t cap);
         void joinRoom(uint8_t roomId);
@@ -41,6 +42,7 @@ namespace TankTrouble
         void onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onScoresUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onGameOff(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
 
         Window* interface;
