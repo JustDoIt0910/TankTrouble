@@ -32,6 +32,10 @@ namespace TankTrouble
         put(capOption1, 490, 25);
         put(capOption2, 530, 25);
         put(capOption3, 570, 25);
+        backBtn.set_label("退出");
+        backBtn.set_size_request(50, 40);
+        backBtn.signal_clicked().connect(sigc::mem_fun(*this, &GameLobby::onLogout));
+        put(backBtn, WINDOW_WIDTH - 60, WINDOW_HEIGHT - 50);
         show_all_children();
     }
 
@@ -47,15 +51,7 @@ namespace TankTrouble
 
     void GameLobby::getRoomInfo()
     {
-        uint8_t joinedRoomId_, joinStatus;
-        roomInfos = std::move(ctl->getRoomInfos(&joinedRoomId_, &joinStatus));
-        if(joinStatus == Codec::ERR_IS_IN_ROOM)
-            std::cout << "ERR_IS_IN_ROOM" << std::endl;
-        else if(joinStatus == Codec::ERR_ROOM_NOT_EXIST)
-            std::cout << "ERR_ROOM_NOT_EXIST" << std::endl;
-        else if(joinStatus == Codec::JOIN_ROOM_SUCCESS)
-            joinedRoomId = joinedRoomId_;
-
+        roomInfos = std::move(ctl->getRoomInfos(&joinedRoomId));
         remove(roomList);
         for(auto& item: roomItems)
             roomList.remove(*item);
@@ -96,4 +92,8 @@ namespace TankTrouble
     void GameLobby::capOption1Clicked() {newRoomCap = 2;}
     void GameLobby::capOption2Clicked() {newRoomCap = 3;}
     void GameLobby::capOption3Clicked() {newRoomCap = 4;}
+
+    sigc::signal<void> GameLobby::signal_logout() {return logout_s;}
+
+    void GameLobby::onLogout() {logout_s.emit();}
 }

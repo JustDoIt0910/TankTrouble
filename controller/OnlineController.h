@@ -27,7 +27,7 @@ namespace TankTrouble
         void createNewRoom(const std::string& name, uint8_t cap);
         void joinRoom(uint8_t roomId);
         OnlineUser getUserInfo();
-        std::vector<RoomInfo> getRoomInfos(uint8_t* currentRoomId, uint8_t* currentJoinStatus);
+        std::vector<RoomInfo> getRoomInfos(uint8_t* currentRoomId);
 
     private:
         void run();
@@ -58,7 +58,6 @@ namespace TankTrouble
         std::vector<RoomInfo> roomsInfo;
 
         uint8_t joinedRoomId;
-        uint8_t joinStatus;
     };
 }
 

@@ -51,6 +51,7 @@ namespace TankTrouble
         ctl = std::make_unique<LocalController>();
         ctl->start();
         gameView = std::make_unique<GameView>(ctl.get());
+        gameView->signal_quit_game().connect(sigc::mem_fun(*this, &Window::toEntryView));
         add(*gameView);
         gameView->show();
     }
@@ -70,12 +71,22 @@ namespace TankTrouble
         onlineController->login(nickname);
     }
 
+    void Window::toEntryView()
+    {
+        remove();
+        if(gameView) gameView.reset();
+        if(gameLobby) gameLobby.reset();
+        if(ctl) ctl.reset();
+        add(entryView);
+        entryView.show();
+    }
 
     void Window::onLoginSuccess()
     {
         remove();
         auto* onlineController = dynamic_cast<OnlineController*>(ctl.get());
         gameLobby = std::make_unique<GameLobby>(onlineController);
+        gameLobby->signal_logout().connect(sigc::mem_fun(*this, &Window::toEntryView));
         add(*gameLobby);
         gameLobby->show();
     }
@@ -108,6 +119,8 @@ namespace TankTrouble
 
     bool Window::on_key_press_event(GdkEventKey* key_event)
     {
+        if(!ctl)
+            return Gtk::Window::on_key_press_event(key_event);
         if(!KeyUpPressed && key_event->keyval == GDK_KEY_Up)
         {
             KeyUpPressed = true;
@@ -143,6 +156,8 @@ namespace TankTrouble
 
     bool Window::on_key_release_event(GdkEventKey* key_event)
     {
+        if(!ctl)
+            return Gtk::Window::on_key_press_event(key_event);
         if(key_event->keyval == GDK_KEY_Up)
         {
             KeyUpPressed = false;

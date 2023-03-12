@@ -26,8 +26,7 @@ namespace TankTrouble
         Controller(),
         interface(win),
         serverAddress(serverAddr),
-        joinedRoomId(0),
-        joinStatus(0)
+        joinedRoomId(0)
     {
         codec.registerHandler(MSG_LOGIN_RESP,
                               std::bind(&OnlineController::onLoginSuccess, this, _1, _2, _3));
@@ -106,6 +105,7 @@ namespace TankTrouble
         quitRoom.setField<Field<std::string>>("msg", "quit");
         Buffer buf = Codec::packMessage(MSG_QUIT_ROOM, quitRoom);
         client->send(buf);
+        joinedRoomId = 0;
     }
 
     OnlineUser OnlineController::getUserInfo()
@@ -114,13 +114,10 @@ namespace TankTrouble
         return userInfo;
     }
 
-    std::vector<RoomInfo> OnlineController::getRoomInfos(uint8_t* currentRoomId, uint8_t* currentJoinStatus)
+    std::vector<RoomInfo> OnlineController::getRoomInfos(uint8_t* currentRoomId)
     {
         std::lock_guard<std::mutex> lg(roomsInfoMu);
         *currentRoomId = joinedRoomId;
-        *currentJoinStatus = joinStatus;
-        joinedRoomId = 0;
-        joinStatus = 0;
         return roomsInfo;
     }
 
@@ -143,7 +140,6 @@ namespace TankTrouble
     void OnlineController::controlEventHandler(ev::Event *event)
     {
         auto* ce = dynamic_cast<ControlEvent*>(event);
-        std::cout << ce->operation() << std::endl;
         switch (ce->operation())
         {
             case ControlEvent::Forward:
@@ -204,11 +200,8 @@ namespace TankTrouble
         uint8_t roomId = message.getField<Field<uint8_t>>("join_room_id").get();
         uint8_t code = message.getField<Field<uint8_t>>("operation_status").get();
         std::lock_guard<std::mutex> lg(roomsInfoMu);
-        joinStatus = code;
         if(code == Codec::JOIN_ROOM_SUCCESS)
             joinedRoomId = roomId;
-        else
-            interface->notifyRoomUpdate();
     }
 
     void OnlineController::onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp)

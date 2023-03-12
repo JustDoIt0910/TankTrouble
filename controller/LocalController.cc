@@ -3,6 +3,7 @@
 //
 
 #include "defs.h"
+#include "Data.h"
 #include "LocalController.h"
 #include "util/Math.h"
 #include "util/Id.h"
@@ -24,13 +25,17 @@ namespace TankTrouble
 
     LocalController::LocalController():
         Controller(),
-        tankNum(0),
         globalSteps(0),
         danger(0),
-        smith(new AgentSmith(this)) {initAll();}
+        smith(new AgentSmith(this))
+    {
+        playersInfo[PLAYER_TANK_ID] = PlayerInfo("you", RED);
+        playersInfo[AI_TANK_ID] = PlayerInfo("Agent Smith", GREY);
+        initAll();
+    }
 
 
-    LocalController::~LocalController() = default;
+    LocalController::~LocalController() {util::Id::reset();}
 
     void LocalController::start()
     {
@@ -42,7 +47,6 @@ namespace TankTrouble
     void LocalController::restart(double delay)
     {
         controlLoop->runAfter(delay, [this]() -> void {
-            tankNum = 0;
             globalSteps = 0;
             objects.clear();
             blocks.clear();
@@ -70,7 +74,6 @@ namespace TankTrouble
         objects[tank->id()] = std::move(tank);
         std::unique_ptr<Object> smithTank(new Tank(util::Id::getTankId(), pos[1].pos, pos[1].angle, GREY));
         objects[smithTank->id()] = std::move(smithTank);
-        tankNum += 2;
         danger = 0;
         smith->initAStar(&blocks);
     }
@@ -119,16 +122,16 @@ namespace TankTrouble
 
     bool LocalController::getSmithPosition(Object::PosInfo& pos)
     {
-        if(objects.find(2) == objects.end()) return false;
-        Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+        if(objects.find(AI_TANK_ID) == objects.end()) return false;
+        Tank* smithTank = dynamic_cast<Tank*>(objects[AI_TANK_ID].get());
         pos = smithTank->getCurrentPosition();
         return true;
     }
 
     bool LocalController::getMyPosition(Object::PosInfo& pos)
     {
-        if(objects.find(1) == objects.end()) return false;
-        Tank* me = dynamic_cast<Tank*>(objects[1].get());
+        if(objects.find(PLAYER_TANK_ID) == objects.end()) return false;
+        Tank* me = dynamic_cast<Tank*>(objects[PLAYER_TANK_ID].get());
         pos = me->getCurrentPosition();
         return true;
     }
@@ -153,9 +156,9 @@ namespace TankTrouble
 
     void LocalController::controlEventHandler(ev::Event *event)
     {
-        if(objects.find(1) == objects.end()) return;
+        if(objects.find(PLAYER_TANK_ID) == objects.end()) return;
         auto* ce = dynamic_cast<ControlEvent*>(event);
-        Tank* me = dynamic_cast<Tank*>(objects[1].get());
+        Tank* me = dynamic_cast<Tank*>(objects[PLAYER_TANK_ID].get());
         switch (ce->operation())
         {
             case ControlEvent::Forward: me->forward(true); break;
@@ -188,8 +191,8 @@ namespace TankTrouble
         std::unique_ptr<Object> shell(tank->makeShell());
         objects[shell->id()] = std::move(shell);
 
-        if(objects.find(2) == objects.end()) return;
-        Tank* smithTank = dynamic_cast<Tank*>(objects[2].get());
+        if(objects.find(AI_TANK_ID) == objects.end()) return;
+        Tank* smithTank = dynamic_cast<Tank*>(objects[AI_TANK_ID].get());
         AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithTank->getCurrentPosition());
         smith->ballisticsPredict(shells, globalSteps);
     }
@@ -203,7 +206,7 @@ namespace TankTrouble
         for(auto& entry: objects)
         {
             std::unique_ptr<Object>& obj = entry.second;
-            if(obj->id() == 2)
+            if(obj->id() == AI_TANK_ID)
             {
                 auto* smithTank = dynamic_cast<Tank*>(obj.get());
                 if(smithDodgeStrategy)
@@ -241,6 +244,10 @@ namespace TankTrouble
                     {
                         deletedObjs.push_back(id);
                         deletedObjs.push_back(shell->id());
+                        if(id == PLAYER_TANK_ID)
+                            playersInfo[AI_TANK_ID].score_++;
+                        else
+                            playersInfo[PLAYER_TANK_ID].score_++;
                         restart(1.0);
                         break;
                     }

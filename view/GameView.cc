@@ -14,8 +14,10 @@ namespace TankTrouble
         gameArea.set_size_request(GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT);
         put(gameArea, 0, 0);
         quitBtn.set_label("退出");
+        quitBtn.set_size_request(50, 40);
+        quitBtn.set_can_focus(false);
         quitBtn.signal_clicked().connect(sigc::mem_fun(*this, &GameView::onQuit));
-        put(quitBtn, GAME_VIEW_WIDTH + 10, GAME_VIEW_HEIGHT - 20);
+        put(quitBtn, WINDOW_WIDTH - 60, WINDOW_HEIGHT - 50);
         Glib::signal_timeout().connect(
                 sigc::mem_fun(*this, &GameView::getPlayersInfo),
                 30);

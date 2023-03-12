@@ -26,6 +26,9 @@
 #define RIGHT               6
 #define UPWARDS_RIGHT       7
 
+#define PLAYER_TANK_ID      1
+#define AI_TANK_ID          2
+
 namespace TankTrouble
 {
     class AgentSmith;
@@ -70,7 +73,6 @@ namespace TankTrouble
         ObjectList objects;
         std::vector<int> shellPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
         std::vector<int> tankPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
-        int tankNum;
         uint64_t globalSteps;
 
         friend class AgentSmith;

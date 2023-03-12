@@ -18,15 +18,18 @@ namespace TankTrouble
         explicit GameLobby(OnlineController* ctl);
         void getUserInfo();
         void getRoomInfo();
+        sigc::signal<void> signal_logout();
 
     private:
         void onCreateRoom();
         void onJoinRoom(uint8_t roomId);
+        void onLogout();
 
         OnlineController* ctl;
         Gtk::Label userInfoLabel;
         Gtk::Entry newRoomEntry;
         Gtk::Button newRoomBtn;
+        Gtk::Button backBtn;
 
         Gtk::RadioButton capOption1;
         void capOption1Clicked();
@@ -40,6 +43,7 @@ namespace TankTrouble
         std::vector<RoomInfo> roomInfos;
         std::vector<std::unique_ptr<RoomItem>> roomItems;
         uint8_t joinedRoomId;
+        sigc::signal<void> logout_s;
     };
 }
 

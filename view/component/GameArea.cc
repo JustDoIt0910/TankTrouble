@@ -4,6 +4,7 @@
 
 #include "GameArea.h"
 #include <glibmm/main.h>
+#include <iostream>
 
 namespace TankTrouble
 {

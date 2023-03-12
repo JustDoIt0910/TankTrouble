@@ -33,6 +33,7 @@ namespace TankTrouble
         void onUserChooseLocal();
         void onUserChooseOnline();
         void onUserLogin(const std::string& nickname);
+        void toEntryView();
 
         void onLoginSuccess();
         void onRoomsUpdate();
