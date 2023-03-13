@@ -58,7 +58,9 @@ namespace TankTrouble
         explicit AgentSmith(LocalController* ctl):
             ctl(ctl),
             aStar(new AStar),
-            prevFireTime(-1000){}
+            prevFireTime(-1000),
+            prevThreat(BallisticSegment::invalid()),
+            dangerSegment(BallisticSegment::invalid()){}
 
         PredictingShellList getIncomingShells(const Object::PosInfo& smithPos);
 
@@ -82,11 +84,11 @@ namespace TankTrouble
 
         bool checkFeasible(uint64_t step, const Object::PosInfo& tryPos);
 
-        void tryRotation(uint64_t globalSteps);
+        DodgeStrategy tryRotation(uint64_t globalSteps);
 
-        void tryRotatingAndMoving(uint64_t globalSteps);
+        DodgeStrategy tryRotatingAndMoving(uint64_t globalSteps);
 
-        void tryRotatingWithMoving(uint64_t globalSteps);
+        DodgeStrategy tryRotatingWithMoving(uint64_t globalSteps);
 
         DodgeStrategy dodgeToSide(uint64_t globalSteps, const Object::PosInfo& cur,
                                   int whichSide, int angleGran);
@@ -95,7 +97,7 @@ namespace TankTrouble
                          const Object::PosInfo& cur, int angleGran,
                          uint64_t * rotatingSteps, uint64_t* straightSteps);
 
-        int tryMovingStraight(uint64_t globalSteps, int direction,
+        bool tryMovingStraight(uint64_t globalSteps, int direction,
                               const Object::PosInfo& cur, uint64_t * takingSteps);
 
         enum CheckResult {SAFE, DIE, UNKNOWN};
@@ -105,7 +107,6 @@ namespace TankTrouble
 
         LocalController* ctl;
         Ballistics ballistics;
-        std::unordered_map<int, std::vector<DodgeStrategy>> strategies;
 
         Object::PosInfo smithPos;
         std::vector<BallisticSegment> threats;
@@ -113,6 +114,8 @@ namespace TankTrouble
 
         std::unique_ptr<AStar> aStar;
         uint64_t prevFireTime;
+        BallisticSegment prevThreat;
+        BallisticSegment dangerSegment;
     };
 }
 

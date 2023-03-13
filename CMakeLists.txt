@@ -17,7 +17,6 @@ set(TANK_TROUBLE_SRC main.cc
         controller/OnlineController.cc
         protocol/Codec.cc
         event/ControlEvent.cc
-        event/StrategyUpdateEvent.cc
         smithAI/AgentSmith.cc
         smithAI/DodgeStrategy.cc
         smithAI/AStar.cc

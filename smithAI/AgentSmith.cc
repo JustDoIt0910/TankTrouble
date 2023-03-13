@@ -6,14 +6,12 @@
 #include "controller/LocalController.h"
 #include "Shell.h"
 #include "util/Math.h"
-#include "event/StrategyUpdateEvent.h"
 #include <iostream>
 
 namespace TankTrouble
 {
     const int AgentSmith::MAX_PREDICT_STEP = 150;
     const int AgentSmith::THREATENED_RANGE = 150;
-    const int AgentSmith::MAX_DODGING_SHELLS = 1;
     const int AgentSmith::ATTACKING_RANGE = 120;
 
     AgentSmith::PredictingShellList AgentSmith::getIncomingShells(const Object::PosInfo& cur)
@@ -125,78 +123,79 @@ namespace TankTrouble
         return s1.distanceToTarget < s2.distanceToTarget;
     }
 
-    void AgentSmith::tryRotation(uint64_t globalSteps)
+    DodgeStrategy AgentSmith::tryRotation(uint64_t globalSteps)
     {
         Object::PosInfo tryPos = smithPos;
-        bool success; uint64_t step = globalSteps + 1;
+        uint64_t step = globalSteps + 1;
+        BallisticSegment segment = threats[0];
+        std::vector<DodgeStrategy> strategies;
         for(int r = 0; r < (180 - 1) / Tank::ROTATING_STEP; r++, step++)
         {
-            success = true;
             tryPos.angle = static_cast<int>(360 + tryPos.angle - Tank::ROTATING_STEP) % 360;
             if(!checkFeasible(step, tryPos)) break;
-            for(int i = 0; i < std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())); i++)
+            if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
+                                             tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
             {
-                BallisticSegment segment = threats[i];
-                if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
-                                                 tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
-                {
-                    DodgeStrategy strategy(step - globalSteps);
-                    strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CW, step - globalSteps, 0});
-                    strategies[i + 1].push_back(strategy);
-                }
-                else success = false;
-            }
-            if(success)
+                if(util::checkRectRectCollision(dangerSegment.angle, dangerSegment.center,
+                                                2 * Shell::RADIUS, dangerSegment.length,
+                                                tryPos.angle, tryPos.pos,
+                                                Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+                    continue;
+                DodgeStrategy strategy(step - globalSteps);
+                strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CW, step - globalSteps, 0});
+                strategies.push_back(strategy);
                 break;
+            }
         }
         tryPos = smithPos; step = globalSteps + 1;
         for(int r = 0; r < (180 - 1) / Tank::ROTATING_STEP; r++, step++)
         {
-            success = true;
             tryPos.angle = static_cast<int>(tryPos.angle + Tank::ROTATING_STEP) % 360;
             if(!checkFeasible(step, tryPos)) break;
-            for(int i = 0; i < std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())); i++)
+            if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
+                                             tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
             {
-                BallisticSegment segment = threats[i];
-                if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
-                                                 tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
-                {
-                    DodgeStrategy strategy(step - globalSteps);
-                    strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CCW, step - globalSteps, 0});
-                    strategies[i + 1].push_back(strategy);
-                }
-                else success = false;
-            }
-            if(success)
+                if(util::checkRectRectCollision(dangerSegment.angle, dangerSegment.center,
+                                                2 * Shell::RADIUS, dangerSegment.length,
+                                                tryPos.angle, tryPos.pos,
+                                                Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+                    continue;
+                DodgeStrategy strategy(step - globalSteps);
+                strategy.addCmd({DodgeStrategy::DODGE_CMD_ROTATE_CCW, step - globalSteps, 0});
+                strategies.push_back(strategy);
                 break;
+            }
         }
+        if(strategies.empty())
+            return {};
+        sort(strategies.begin(), strategies.end());
+        return strategies[0];
     }
 
-    int AgentSmith::tryMovingStraight(uint64_t globalSteps, int direction,
+    bool AgentSmith::tryMovingStraight(uint64_t globalSteps, int direction,
                                       const Object::PosInfo& cur, uint64_t* takingSteps)
     {
         uint64_t step = globalSteps + 1; Object::PosInfo tryPos = cur;
-        int maxDodging = 0;
-        int threatNum = std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size()));
-        bool stop = false;
-        for(int s = 0; s < 50 && !stop; s++, step++)
+        bool success = false;
+        BallisticSegment segment = threats[0];
+        for(int s = 0; s < 50; s++, step++)
         {
             tryPos = Tank::getNextPosition(tryPos, direction, 0, 0);
             if(!checkFeasible(step, tryPos)) break;
-            for(int i = 0; i < threatNum; i++)
+            if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
+                                             tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
             {
-                BallisticSegment segment = threats[i];
-                if(!util::checkRectRectCollision(segment.angle, segment.center, 2 * Shell::RADIUS, segment.length,
-                                                 tryPos.angle, tryPos.pos, Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
-                {
-                    maxDodging++;
-                    if(maxDodging == threatNum)
-                        stop = true;
-                }
+                if(util::checkRectRectCollision(dangerSegment.angle, dangerSegment.center,
+                                                2 * Shell::RADIUS, dangerSegment.length,
+                                                tryPos.angle, tryPos.pos,
+                                                Tank::TANK_WIDTH, Tank::TANK_HEIGHT))
+                    continue;
+                success = true;
+                break;
             }
         }
         *takingSteps = step - globalSteps;
-        return maxDodging;
+        return success;
     }
 
     bool AgentSmith::movingCurve(uint64_t globalSteps, int direction, int rotation,
@@ -251,62 +250,57 @@ namespace TankTrouble
         return false;
     }
 
-    void AgentSmith::tryRotatingWithMoving(uint64_t globalSteps)
+    DodgeStrategy AgentSmith::tryRotatingWithMoving(uint64_t globalSteps)
     {
-        if(std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())) == 1)
+        BallisticSegment segment = threats[0];
+        util::Vec v1 = util::getUnitVector(segment.angle);
+        util::Vec v2 = smithPos.pos - segment.start.second;
+        util::Vec vt = util::getUnitVector(smithPos.angle);
+        DodgeStrategy strategy;
+        int direction = util::angleBetweenVectors(vt, v1) <= 90.0 ? MOVING_FORWARD
+                :MOVING_BACKWARD;
+        uint64_t bestRotatingStep = 0;
+        uint64_t bestStraightStep = 0;
+        DodgeStrategy::DodgeOperation bestRotationOp;
+        DodgeStrategy::DodgeOperation bestMoveOp = (direction == MOVING_FORWARD) ?
+                                               DodgeStrategy::DODGE_CMD_MOVE_FORWARD :
+                                               DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
+        uint64_t rs = 0;
+        uint64_t ms = 0;
+        DodgeStrategy::DodgeOperation rotateCwOp = (direction == MOVING_FORWARD) ?
+                                                 DodgeStrategy::DODGE_CMD_FORWARD_CW :
+                                                 DodgeStrategy::DODGE_CMD_BACKWARD_CW;
+        DodgeStrategy::DodgeOperation rotateCcwOp = (direction == MOVING_FORWARD) ?
+                                                   DodgeStrategy::DODGE_CMD_FORWARD_CCW :
+                                                   DodgeStrategy::DODGE_CMD_BACKWARD_CCW;
+        bestRotationOp = rotateCwOp;
+        if(movingCurve(globalSteps, direction, ROTATING_CW, smithPos, 2, &rs, &ms))
         {
-            BallisticSegment segment = threats[0];
-            util::Vec v1 = util::getUnitVector(segment.angle);
-            util::Vec v2 = smithPos.pos - segment.start.second;
-            util::Vec vt = util::getUnitVector(smithPos.angle);
-            DodgeStrategy strategy;
-            int direction = util::angleBetweenVectors(vt, v1) <= 90.0 ? MOVING_FORWARD
-                    :MOVING_BACKWARD;
-            uint64_t bestRotatingStep = 0;
-            uint64_t bestStraightStep = 0;
-            DodgeStrategy::DodgeOperation bestRotationOp;
-            DodgeStrategy::DodgeOperation bestMoveOp = (direction == MOVING_FORWARD) ?
-                                                   DodgeStrategy::DODGE_CMD_MOVE_FORWARD :
-                                                   DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
-            uint64_t rs = 0;
-            uint64_t ms = 0;
-            DodgeStrategy::DodgeOperation rotateCwOp = (direction == MOVING_FORWARD) ?
-                                                     DodgeStrategy::DODGE_CMD_FORWARD_CW :
-                                                     DodgeStrategy::DODGE_CMD_BACKWARD_CW;
-            DodgeStrategy::DodgeOperation rotateCcwOp = (direction == MOVING_FORWARD) ?
-                                                       DodgeStrategy::DODGE_CMD_FORWARD_CCW :
-                                                       DodgeStrategy::DODGE_CMD_BACKWARD_CCW;
-            bestRotationOp = rotateCwOp;
-            if(movingCurve(globalSteps, direction, ROTATING_CW, smithPos, 2, &rs, &ms))
-            {
-                strategy.addCmd({rotateCwOp, rs, 0});
-                if(ms > 0)
-                    strategy.addCmd({bestMoveOp, ms, 0});
-                strategies[1].push_back(strategy);
-                return;
-            }
+            strategy.addCmd({rotateCwOp, rs, 0});
+            if(ms > 0)
+                strategy.addCmd({bestMoveOp, ms, 0});
+            return strategy;
+        }
+        bestRotatingStep = rs;
+        bestStraightStep = ms;
+        rs = 0; ms = 0;
+        if(movingCurve(globalSteps, direction, ROTATING_CCW, smithPos, 2, &rs, &ms))
+        {
+            strategy.addCmd({rotateCcwOp, rs, 0});
+            if(ms > 0)
+                strategy.addCmd({bestMoveOp, ms, 0});
+            return strategy;
+        }
+        if(rs + ms > bestRotatingStep + bestStraightStep)
+        {
+            bestRotationOp = rotateCcwOp;
             bestRotatingStep = rs;
             bestStraightStep = ms;
-            rs = 0; ms = 0;
-            if(movingCurve(globalSteps, direction, ROTATING_CCW, smithPos, 2, &rs, &ms))
-            {
-                strategy.addCmd({rotateCcwOp, rs, 0});
-                if(ms > 0)
-                    strategy.addCmd({bestMoveOp, ms, 0});
-                strategies[1].push_back(strategy);
-                return;
-            }
-            if(rs + ms > bestRotatingStep + bestStraightStep)
-            {
-                bestRotationOp = rotateCcwOp;
-                bestRotatingStep = rs;
-                bestStraightStep = ms;
-            }
-            strategy.addCmd({bestRotationOp, bestRotatingStep, 0});
-            if(bestStraightStep > 0)
-                strategy.addCmd({bestMoveOp, bestStraightStep, 0});
-            strategies[1].push_back(strategy);
         }
+        strategy.addCmd({bestRotationOp, bestRotatingStep, 0});
+        if(bestStraightStep > 0)
+            strategy.addCmd({bestMoveOp, bestStraightStep, 0});
+        return strategy;
     }
 
     DodgeStrategy AgentSmith::dodgeToSide(uint64_t globalSteps, const Object::PosInfo& cur,
@@ -327,7 +321,7 @@ namespace TankTrouble
         DodgeStrategy::DodgeOperation moveOp = (direction == MOVING_FORWARD) ?
                                                DodgeStrategy::DODGE_CMD_MOVE_FORWARD: DodgeStrategy::DODGE_CMD_MOVE_BACKWARD;
         uint64_t s;
-        if(tryMovingStraight(globalSteps, direction, tryPos, &s) == 1)
+        if(tryMovingStraight(globalSteps, direction, tryPos, &s))
         {
             strategy.addCmd({moveOp, s, 0});
             stop = true;
@@ -416,42 +410,35 @@ namespace TankTrouble
                 break;
             }
         }
-
         return strategy;
     }
 
-    void AgentSmith::tryRotatingAndMoving(uint64_t globalSteps)
+    DodgeStrategy AgentSmith::tryRotatingAndMoving(uint64_t globalSteps)
     {
-        if(std::min(MAX_DODGING_SHELLS, static_cast<int>(threats.size())) == 1)
+        BallisticSegment segment = threats[0];
+        util::Vec v1 = util::getUnitVector(segment.angle);
+        util::Vec v2 = smithPos.pos - segment.start.second;
+        DodgeStrategy strategy;
+        if(v1.cross(v2) >= 0)
         {
-            BallisticSegment segment = threats[0];
-            util::Vec v1 = util::getUnitVector(segment.angle);
-            util::Vec v2 = smithPos.pos - segment.start.second;
-            DodgeStrategy strategy;
-            if(v1.cross(v2) >= 0)
-            {
-                strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE, 2);
-                if(!strategy.isValid())
-                    strategy = dodgeToSide(globalSteps, smithPos, LEFT_SIDE, 2);
-            }
-            else
-            {
+            strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE, 2);
+            if(!strategy.isValid())
                 strategy = dodgeToSide(globalSteps, smithPos, LEFT_SIDE, 2);
-                if(!strategy.isValid())
-                    strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE, 2);
-            }
-            if(strategy.isValid())
-                strategies[1].push_back(strategy);
         }
+        else
+        {
+            strategy = dodgeToSide(globalSteps, smithPos, LEFT_SIDE, 2);
+            if(!strategy.isValid())
+                strategy = dodgeToSide(globalSteps, smithPos, RIGHT_SIDE, 2);
+        }
+        return strategy;
     }
 
     void AgentSmith::getDodgeStrategy(const Object::PosInfo& pos, uint64_t globalSteps)
     {
-        ev::Timestamp before = ev::Timestamp::now();
         bool stop = false;
-        auto* strategy = new DodgeStrategy;
+        auto* finalStrategy = new DodgeStrategy;
         smithPos = pos;
-        strategies.clear();
         potentialThreats.clear();
         threats.clear();
         {
@@ -471,34 +458,35 @@ namespace TankTrouble
         }
         if(threats.empty())
             return;
+        sort(threats.begin(), threats.end(), segmentCmp);
 
-        int threatNum = std::min(static_cast<int>(threats.size()), MAX_DODGING_SHELLS);
-        std::sort(threats.begin(), threats.end(), segmentCmp);
-        tryRotation(globalSteps);
-        if(!strategies[threatNum].empty())
+        BallisticSegment closest = threats[0];
+        if(closest.shellId != prevThreat.shellId || closest.seq != prevThreat.seq)
         {
-            sort(strategies[threatNum].begin(), strategies[threatNum].end());
-            *strategy = strategies[threatNum][0];
+            dangerSegment = prevThreat;
+            prevThreat = closest;
+        }
+
+        DodgeStrategy strategy = tryRotation(globalSteps);
+        if(strategy.isValid())
+        {
+            *finalStrategy = strategy;
             stop = true;
         }
         if(!stop)
         {
-            tryRotatingAndMoving(globalSteps);
-            if(!strategies[threatNum].empty())
+            strategy = tryRotatingAndMoving(globalSteps);
+            if(strategy.isValid())
             {
-                *strategy = strategies[threatNum][0];
+                *finalStrategy = strategy;
                 stop = true;
             }
         }
         if(!stop)
-            tryRotatingWithMoving(globalSteps);
-        *strategy = strategies[1][0];
+            *finalStrategy = tryRotatingWithMoving(globalSteps);
 
-        std::cout << *strategy << std::endl;
-        auto* event = new StrategyUpdateEvent(strategy);
-        ctl->dispatchEvent(event);
-        ev::Timestamp after = ev::Timestamp::now();
-        std::cout << (after - before) / 1000.0 << std::endl;
+        std::cout << *finalStrategy << threats[0].shellId << " " << threats[0].seq << std::endl;
+        ctl->updateStrategy(finalStrategy);
     }
 
     void AgentSmith::initAStar(AStar::BlockList* blocks) {aStar->init(blocks);}
@@ -514,11 +502,9 @@ namespace TankTrouble
             if(aimingPos.isValid())
             {
                 Strategy* strategy = new AttackStrategy(aimingPos);
-                auto* event = new StrategyUpdateEvent(strategy);
-                ctl->dispatchEvent(event);
+                ctl->updateStrategy(strategy);
                 strategy = new ContactStrategy(AStar::AStarResult());
-                event = new StrategyUpdateEvent(strategy);
-                ctl->dispatchEvent(event);
+                ctl->updateStrategy(strategy);
                 prevFireTime = globalSteps;
                 return;
             }
@@ -531,8 +517,7 @@ namespace TankTrouble
         if(!route.empty())
         {
             auto* strategy = new ContactStrategy(route);
-            auto* event = new StrategyUpdateEvent(strategy);
-            ctl->dispatchEvent(event);
+            ctl->updateStrategy(strategy);
         }
     }
 

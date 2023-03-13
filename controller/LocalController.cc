@@ -8,7 +8,6 @@
 #include "util/Math.h"
 #include "util/Id.h"
 #include "event/ControlEvent.h"
-#include "event/StrategyUpdateEvent.h"
 #include "Shell.h"
 #include "smithAI/AgentSmith.h"
 #include <thread>
@@ -89,24 +88,16 @@ namespace TankTrouble
         }
 
         auto* controlEvent = new ControlEvent;
-        auto* strategyUpdateEvent = new StrategyUpdateEvent;
         loop.addEventListener(controlEvent,
                               [this](ev::Event* event){this->controlEventHandler(event);});
-        loop.addEventListener(strategyUpdateEvent,
-                              [this](ev::Event* event){this->strategyUpdateHandler(event);});
 
         loop.runEvery(0.01, [this]{this->moveAll();});
-
-        loop.runEvery(0.2, [this] () -> void {
-            Object::PosInfo smithPos;
-            if(!getSmithPosition(smithPos)) return;
-            AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithPos);
-            smith->ballisticsPredict(shells, globalSteps);
-        });
 
         loop.runEvery(0.1, [this]() -> void {
             Object::PosInfo smithPos;
             if(!getSmithPosition(smithPos)) return;
+            AgentSmith::PredictingShellList shells = smith->getIncomingShells(smithPos);
+            smith->ballisticsPredict(shells, globalSteps);
             smith->getDodgeStrategy(smithPos, globalSteps);
         });
 
@@ -173,10 +164,8 @@ namespace TankTrouble
         }
     }
 
-    void LocalController::strategyUpdateHandler(ev::Event* event)
+    void LocalController::updateStrategy(Strategy* strategy)
     {
-        auto* updateEvent = dynamic_cast<StrategyUpdateEvent*>(event);
-        Strategy* strategy = updateEvent->getStrategy();
         if(strategy->type() == Strategy::Dodge)
             smithDodgeStrategy.reset(dynamic_cast<DodgeStrategy*>(strategy));
         else if(strategy->type() == Strategy::Contact)

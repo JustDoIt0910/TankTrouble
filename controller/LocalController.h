@@ -45,7 +45,7 @@ namespace TankTrouble
         void run();
         void moveAll();
         void controlEventHandler(ev::Event* event);
-        void strategyUpdateHandler(ev::Event* event);
+        void updateStrategy(Strategy* strategy);
         void fire(Tank* tank);
 
         int checkShellCollision(const Object::PosInfo& curPos, const Object::PosInfo& nextPos);

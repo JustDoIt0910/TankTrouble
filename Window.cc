@@ -59,7 +59,7 @@ namespace TankTrouble
     void Window::onUserChooseOnline()
     {
         remove();
-        ctl = std::make_unique<OnlineController>(this, Inet4Address("127.0.0.1", 8080));
+        ctl = std::make_unique<OnlineController>(this, Inet4Address("110.40.210.125", 8080));
         ctl->start();
         add(loginView);
         loginView.show();
