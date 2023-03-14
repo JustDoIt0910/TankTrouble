@@ -13,8 +13,14 @@ namespace TankTrouble
         });
 
         messages_[MSG_LOGIN_RESP] = MessageTemplate({
-                new FieldTemplate<std::string>("nickname"),
-                new FieldTemplate<uint32_t>("score")
+            new FieldTemplate<std::string>("nickname"),
+            new FieldTemplate<uint32_t>("score"),
+            new FieldTemplate<uint32_t>("user_id")
+        });
+
+        messages_[MSG_UDP_HANDSHAKE] = MessageTemplate({
+            new FieldTemplate<uint32_t>("user_id"),
+            new FieldTemplate<std::string>("msg")
         });
 
         messages_[MSG_NEW_ROOM] = MessageTemplate({

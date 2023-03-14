@@ -8,6 +8,7 @@
 #include "Shell.h"
 #include "event/ControlEvent.h"
 #include "net/TcpClient.h"
+#include <fcntl.h>
 
 static std::unordered_map<int, Color> colorMap = {
         {1, RED},
@@ -15,6 +16,16 @@ static std::unordered_map<int, Color> colorMap = {
         {3, GREEN},
         {4, YELLOW}
 };
+
+void setNonBlocking(int fd)
+{
+    int opts = ::fcntl(fd, F_GETFL);
+    if(opts < 0)
+        abort();
+    opts |= O_NONBLOCK;
+    if(::fcntl(fd, F_SETFL, opts) < 0)
+        abort();
+}
 
 namespace TankTrouble
 {
@@ -26,7 +37,9 @@ namespace TankTrouble
         Controller(),
         interface(win),
         serverAddress(serverAddr),
-        joinedRoomId(0)
+        joinedRoomId(0),
+        udpSocket(-1),
+        handshakeSuccess(false)
     {
         codec.registerHandler(MSG_LOGIN_RESP,
                               std::bind(&OnlineController::onLoginSuccess, this, _1, _2, _3));
@@ -38,15 +51,28 @@ namespace TankTrouble
                               std::bind(&OnlineController::onGameOn, this, _1, _2, _3));
         codec.registerHandler(MSG_UPDATE_BLOCKS,
                               std::bind(&OnlineController::onBlocksUpdate, this, _1, _2, _3));
-        codec.registerHandler(MSG_UPDATE_OBJECTS,
-                              std::bind(&OnlineController::onObjectsUpdate, this, _1, _2, _3));
+//        codec.registerHandler(MSG_UPDATE_OBJECTS,
+//                              std::bind(&OnlineController::onObjectsUpdate, this, _1, _2, _3));
         codec.registerHandler(MSG_UPDATE_SCORES,
                               std::bind(&OnlineController::onScoresUpdate, this, _1, _2, _3));
         codec.registerHandler(MSG_GAME_OFF,
                               std::bind(&OnlineController::onGameOff, this, _1, _2, _3));
     }
 
-    OnlineController::~OnlineController() = default;
+    OnlineController::~OnlineController()
+    {
+        if(udpChannel)
+        {
+            ev::CountDownLatch latch(1);
+            controlLoop->runInLoop([this, &latch] () {
+                udpChannel->disableAll();
+                udpChannel->remove();
+                latch.countDown();
+            });
+            latch.wait();
+        }
+        ::close(udpSocket);
+    }
 
     void OnlineController::start()
     {
@@ -123,6 +149,10 @@ namespace TankTrouble
 
     void OnlineController::sendLoginMessage(const TcpConnectionPtr& conn)
     {
+        udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
+        if(udpSocket < 0)
+            abort();
+        setNonBlocking(udpSocket);
         Message login = codec.getEmptyMessage(MSG_LOGIN);
         login.setField<Field<std::string>>("nickname", nickname);
         Codec::sendMessage(conn, MSG_LOGIN, login);
@@ -169,8 +199,13 @@ namespace TankTrouble
     {
         std::string name = message.getField<Field<std::string>>("nickname").get();
         uint32_t score = message.getField<Field<uint32_t>>("score").get();
+        userId = message.getField<Field<uint32_t>>("user_id").get();
         if(name != nickname)
             return;
+        udpChannel = std::make_unique<ev::reactor::Channel>(controlLoop, udpSocket);
+        udpChannel->setReadCallback([this] (ev::Timestamp) {udpRead();});
+        udpChannel->enableReading();
+        udpHandshake();
         std::lock_guard<std::mutex> lg(userInfoMu);
         userInfo.nickname_ = name;
         userInfo.score_ = score;
@@ -234,7 +269,7 @@ namespace TankTrouble
         }
     }
 
-    void OnlineController::onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp)
+    void OnlineController::onObjectsUpdate(Message message)
     {
         std::lock_guard<std::mutex> lg(mu);
         if(!snapshot.unique())
@@ -286,5 +321,57 @@ namespace TankTrouble
         if(msg != "off")
             return;
         interface->notifyGameOff();
+    }
+
+    void OnlineController::udpRead()
+    {
+        char buf[1024];
+        struct sockaddr servAddr{};
+        auto len = static_cast<socklen_t>(sizeof(servAddr));
+        ssize_t n = ::recvfrom(udpSocket, buf, sizeof(buf), 0, &servAddr, &len);
+        Buffer data;
+        data.append(buf, n);
+        if(data.readableBytes() < HeaderLen)
+            return;
+        FixHeader header = getHeader(&data);
+        if(data.readableBytes() >= HeaderLen + header.messageLen)
+        {
+            data.retrieve(HeaderLen);
+            if(header.messageType == MSG_UPDATE_OBJECTS)
+            {
+                Message message = codec.getEmptyMessage(MSG_UPDATE_OBJECTS);
+                message.fill(&data);
+                onObjectsUpdate(std::move(message));
+            }
+            else if(header.messageType == MSG_UDP_HANDSHAKE)
+            {
+                Message message = codec.getEmptyMessage(MSG_UDP_HANDSHAKE);
+                message.fill(&data);
+                std::string ack = message.getField<Field<std::string>>("msg").get();
+                if(ack == "handshake")
+                    handshakeSuccess = true;
+            }
+        }
+        else return;
+    }
+
+    void OnlineController::udpHandshake()
+    {
+        assert(userId != 0);
+        Message handshake = codec.getEmptyMessage(MSG_UDP_HANDSHAKE);
+        handshake.setField<Field<uint32_t>>("user_id", userId);
+        handshake.setField<Field<std::string>>("msg", "handshake");
+        Buffer buf = Codec::packMessage(MSG_UDP_HANDSHAKE, handshake);
+        Inet4Address servUdpAddr(serverAddress.toIp(), serverAddress.port() + 1);
+        sendto(udpSocket, buf.peek(), buf.readableBytes(), 0,
+               servUdpAddr.getSockAddr(), static_cast<socklen_t>(sizeof(sockaddr)));
+        controlLoop->runAfter(0.5, [this] () {checkRetransmission();});
+    }
+
+    void OnlineController::checkRetransmission()
+    {
+        if(handshakeSuccess)
+            return;
+        udpHandshake();
     }
 }

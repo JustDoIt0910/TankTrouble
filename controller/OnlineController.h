@@ -7,6 +7,7 @@
 #include "Controller.h"
 #include "Data.h"
 #include "protocol/Codec.h"
+#include "reactor/Channel.h"
 
 using namespace ev::net;
 
@@ -40,14 +41,22 @@ namespace TankTrouble
         void onJoinRoomRespond(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onGameOn(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onBlocksUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
-        void onObjectsUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
+        void onObjectsUpdate(Message message);
         void onScoresUpdate(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
         void onGameOff(const TcpConnectionPtr& conn, Message message, ev::Timestamp);
 
+        void udpRead();
+        void udpHandshake();
+        void checkRetransmission();
 
         Window* interface;
         Inet4Address serverAddress;
         std::unique_ptr<TcpClient> client;
+        int udpSocket;
+        std::unique_ptr<ev::reactor::Channel> udpChannel;
+        bool handshakeSuccess;
+        uint32_t userId;
+
         Codec codec;
         std::string nickname;
 

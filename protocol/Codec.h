@@ -11,6 +11,7 @@
 
 #define MSG_LOGIN               0x10
 #define MSG_LOGIN_RESP          0x11
+#define MSG_UDP_HANDSHAKE       0x12
 
 #define MSG_NEW_ROOM            0x20
 #define MSG_ROOM_INFO           0x21
