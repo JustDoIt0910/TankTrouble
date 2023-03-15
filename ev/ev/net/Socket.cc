@@ -131,6 +131,8 @@ namespace ev::net
 
     int Socket::fd() const {return fd_;}
 
+    bool Socket::isValid() const {return fd_ >= 0;}
+
     Inet4Address Socket::localAddress() const
     {
         struct sockaddr_in localAddr{};

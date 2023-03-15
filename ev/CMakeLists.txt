@@ -8,3 +8,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ev)
 
 add_subdirectory(ev/reactor)
 add_subdirectory(ev/net)
+add_subdirectory(ev/test)

@@ -2,8 +2,8 @@
 // Created by zr on 23-2-9.
 //
 
-#ifndef EV_CURRENTTHREAD_H
-#define EV_CURRENTTHREAD_H
+#ifndef EV_CURRENT_THREAD_H
+#define EV_CURRENT_THREAD_H
 
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -23,4 +23,4 @@ namespace ev
     }
 }
 
-#endif //EV_CURRENTTHREAD_H
+#endif //EV_CURRENT_THREAD_H

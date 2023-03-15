@@ -12,7 +12,8 @@ namespace ev
     void CountDownLatch::wait()
     {
         std::unique_lock<std::mutex> lk(mu);
-        cv.wait(lk, [this] () {return count_ == 0;});
+        if(count_ > 0)
+            cv.wait(lk, [this] () {return count_ == 0;});
     }
 
     void CountDownLatch::countDown()

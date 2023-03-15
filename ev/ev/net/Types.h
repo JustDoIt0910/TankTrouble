@@ -16,7 +16,6 @@ namespace ev::net
     class Connector;
     class Buffer;
 
-    // Connector
     typedef std::shared_ptr<Connector> ConnectorPtr;
     typedef std::function<void (Socket socket)> NewConnectionCallback;
 

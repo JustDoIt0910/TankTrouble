@@ -6,7 +6,6 @@
 #include "Socket.h"
 #include "Connector.h"
 #include "TcpConnection.h"
-#include <iostream>
 
 namespace ev::net
 {

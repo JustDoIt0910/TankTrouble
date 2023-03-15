@@ -32,7 +32,7 @@ namespace ev::net
 
     Inet4Address::Inet4Address(const sockaddr_in& addr): addr_(addr) {}
 
-    std::string Inet4Address::toIpPort()
+    std::string Inet4Address::toIpPort() const
     {
         char buf[32];
         size_t bufSize = sizeof(buf);
@@ -44,7 +44,7 @@ namespace ev::net
         return buf;
     }
 
-    std::string Inet4Address::toIp()
+    const std::string Inet4Address::toIp() const
     {
         char buf[32];
         size_t bufSize = sizeof(buf);

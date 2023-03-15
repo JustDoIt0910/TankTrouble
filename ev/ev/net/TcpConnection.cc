@@ -30,7 +30,11 @@ namespace ev::net
         socket_.setKeepAlive(true);
     }
 
-    TcpConnection::~TcpConnection() { assert(state_.load() == Disconnected);}
+    TcpConnection::~TcpConnection()
+    {
+        if(state_.load() != Disconnected)
+            forceClose();
+    }
 
     void TcpConnection::connectEstablished()
     {

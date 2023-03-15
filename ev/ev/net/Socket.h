@@ -30,6 +30,7 @@ namespace ev::net
         void close();
         [[nodiscard]] int connect(const Inet4Address& serverAddr) const;
         [[nodiscard]] int fd() const;
+        [[nodiscard]] bool isValid() const;
         [[nodiscard]] Inet4Address localAddress() const;
         [[nodiscard]] Inet4Address peerAddress() const;
         [[nodiscard]] int error() const;

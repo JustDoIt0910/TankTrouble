@@ -13,11 +13,12 @@ namespace ev::net
     class Inet4Address
     {
     public:
+        Inet4Address() = default;
         Inet4Address(std::string_view ip, uint16_t port);
-        Inet4Address(uint16_t port, bool loopBackOnly);
+        explicit Inet4Address(uint16_t port, bool loopBackOnly = false);
         explicit Inet4Address(const sockaddr_in& addr);
-        std::string toIpPort();
-        std::string toIp();
+        [[nodiscard]] std::string toIpPort() const;
+        [[nodiscard]] const std::string toIp() const;
         [[nodiscard]] uint16_t port() const;
         [[nodiscard]] sa_family_t family() const;
         [[nodiscard]] const struct sockaddr* getSockAddr() const;
