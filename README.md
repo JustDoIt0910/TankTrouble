@@ -320,3 +320,7 @@ utils ----------------------- 时间戳，线程工具，线程池
    如果payload是数组，序列化时第一个字节是数组元素个数
 
    **|Type (1byte)|Length (2bytes) | 0x02 |elem1 data|elem2 data |**
+
+
+
+TankTroubleServer中的protocol与这里的是完全一样的。
