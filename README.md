@@ -201,6 +201,14 @@ ContactStrategy和AttackStrategy也类似，只不过一个存的是A*算法生�
 
       当炮线比较靠近边缘时，旋转一般是耗时最短的选择
 
+      ![p5](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p5.png)
+
     - **先旋转，再移动**
+
+      仅靠旋转躲不开时，就要尝试移动到炮线的一侧去。那是向左侧躲避最优还是向右侧最优？这就需要一点向量计算了。
+
+      ![p6](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p6.png)
+
+      v是炮弹运动方向向量，v2是从炮弹中心坐标指向坦克中心坐标的向量，计算v与v2的叉乘，可以知道v2在v的左侧还是右侧。明显左边情况向左侧躲避最优，右边情况向右侧躲避最优
 
     - **边转弯边移动**
