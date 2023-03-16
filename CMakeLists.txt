@@ -42,4 +42,5 @@ include_directories(${GTKMM_INCLUDE_DIRS} ${EV_INCLUDE_DIRS} .)
 link_directories(${GTKMM_LIBRARY_DIRS} ${EV_LIBRARY_DIRS})
 link_libraries(${GTKMM_LIBRARIES} reactor net pthread)
 
+file(COPY ${CMAKE_SOURCE_DIR}/res/entry.jpg DESTINATION ${CMAKE_BINARY_DIR})
 add_executable(TankTrouble ${TANK_TROUBLE_SRC})
