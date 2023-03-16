@@ -257,8 +257,66 @@ utils ----------------------- 时间戳，线程工具，线程池
 
 1. **网络协议选择**
 
-对于登录，登出，创建/加入房间，房间、玩家信息的同步，这些操作需要可靠性保证，否则会出现数据不一致，而对实时性要求不是很高，使用TCP，而游戏场景的更新消息对实时性要求极高，使用TCP会导致画面流畅程度极度依赖网络稳定性，显然是不合适的，对于这种实时消息重传并没有意义，少量丢包也是可以允许的，所以我使用一个单独的udp socket来接收游戏场景消息。
+   对于登录，登出，创建/加入房间，房间、玩家信息的同步，这些操作需要可靠性保证，否则会出现数据不一致，而对实时性要求不是很高，使用TCP，而游戏场景的更新消息对实时性要求极高，使用TCP会导致画面流畅程度极度依赖网络稳定性，显然是不合适的，对于这种实时消息重传并没有意义，少量丢包也是可以允许的，所以我使用一个单独的udp socket来接收游戏场景消息。
 
-udp是无连接的，server要通过udp向client发消息，就要知道client的公网ip和port，所以在登录成功后需要一个 udp 握手流程：
+   udp是无连接的，server要通过udp向client发消息，就要知道client的公网ip和port，所以在登录成功后需要一个 udp 握手流程：
 
-![p7](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p7.png)
+   ![p7](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p7.png)
+
+   client发送握手包后启动定时器，超时没有收到握手回应则重传。
+
+2. **protocol的设计**
+
+   因为我不想再引入类似 protobuf 的第三方序列化库，所以自己封装了一种简单的消息序列化与反序列化机制，在 Message.h 中实现，其实就是为不同类型的字段提供一个包装结构 Field，一个 Message 里保存一个或多个 Field，在序列化时，Message 依次调用每个 Field 的 toByteArray() 方法，每个 Field 将自己的 data转成字节流append到Buffer中，反序列化时，Message依次调用每个 Field 的 fill()  方法，每个Field根据自己data数据类型的长度，各取所需。对于多字节整数，序列化与反序列化过程中都会自动进行字节序转换。
+
+   比如新开房间的消息是这样定义的：
+
+   ```c++
+   messages_[MSG_NEW_ROOM] = MessageTemplate({
+               new FieldTemplate<std::string>("room_name"),
+               new FieldTemplate<uint8_t>("player_num")
+           });
+   ```
+
+   这里的FieldTemplate, MessageTemplate是用来生成对应类型的Field和Message的，通过调用MessageTemplate 的 getMessage() 方法，就可以得到一个空的Message。为什么需要MessageTemplate呢？因为这样我可以把所有message定义在 Codec 的一个map中，也就是这里的messages_，它的键是消息类型，定义在 Codec.h 中，值是 MessageTemplate。当我需要发送一条新建房间消息，可以这么写：
+
+   ```c++
+   Message newRoom = codec.getEmptyMessage(MSG_NEW_ROOM);
+   newRoom.setField<Field<std::string>>("room_name", name);
+   newRoom.setField<Field<uint8_t>>("player_num", cap);
+   Buffer buf = Codec::packMessage(MSG_NEW_ROOM, newRoom);
+   client->send(buf);
+   ```
+
+   虽然这会使 MessageTemplate 暴露给多个线程，但由于对 MessageTemplate 都是只读访问，所以是安全的。
+
+   每条消息有固定的 header，解码器读取 header 得知消息类型和长度，header 由 Codec 根据Message的长度自动补全。
+
+   ```c++
+    struct FixHeader
+    {
+        uint8_t messageType;
+        uint16_t messageLen;
+   
+        FixHeader() = default;
+        FixHeader(uint8_t mt, uint16_t ml): messageType(mt), messageLen(ml) {}
+   
+        void toByteArray(Buffer* buf) const
+        {
+            buf->appendInt8(static_cast<int8_t>(messageType));
+            buf->appendInt16(static_cast<int16_t>(messageLen));
+        }
+    };
+   ```
+
+   序列化后的数据是这样子的
+
+   **|Type (1byte)|Length (2bytes) | Field1 data |Field2 data |...**
+
+   字符串字段以0结尾
+
+   **|Type (1byte)|Length (2bytes) | Field1(string) data |0x00|Field2 data |...**
+
+   如果payload是数组，序列化时第一个字节是数组元素个数
+
+   **|Type (1byte)|Length (2bytes) | 0x02 |elem1 data|elem2 data |**
