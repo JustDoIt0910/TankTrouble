@@ -52,7 +52,7 @@
 
 ### 一些项目结构的说明
 
-​		对于单机模式，游戏逻辑主要在LocalController中，网络模式中这部分被移到了服务器的GameRoom中，控制一个房间里的游戏进行。
+对于单机模式，游戏逻辑主要在LocalController中，网络模式中这部分被移到了服务器的GameRoom中，控制一个房间里的游戏进行。
 
 1. **数据层面如何定义一个游戏中的对象**
 
@@ -77,9 +77,9 @@
  };
 ```
 
-​		pos 是中心坐标，angle是相对于x轴正半轴的顺时针旋转角(°)，所有与游戏对象相关的数学计算也都离不开这两个参数。
+pos 是中心坐标，angle是相对于x轴正半轴的顺时针旋转角(°)，所有与游戏对象相关的数学计算也都离不开这两个参数。
 
-​		除此之外一个对象一定有其移动状态，对于坦克来说，有前进，后退，顺时针旋转，逆时针旋转等，对于炮弹则只有前进状态。Tank和Shell都实现Object中的虚函数draw(), getCurrentPosition(), getNextPosition()等等，view层拿到的是一个std::unique_ptr<Object> 的多态列表，它只需要对每个对象调用draw()就好了，而不用管对方是什么。Controller同理，不需要知道对象类型就可以拿到位置，状态等信息。
+除此之外一个对象一定有其移动状态，对于坦克来说，有前进，后退，顺时针旋转，逆时针旋转等，对于炮弹则只有前进状态。Tank和Shell都实现Object中的虚函数draw(), getCurrentPosition(), getNextPosition()等等，view层拿到的是一个std::unique_ptr<Object> 的多态列表，它只需要对每个对象调用draw()就好了，而不用管对方是什么。Controller同理，不需要知道对象类型就可以拿到位置，状态等信息。
 
 
 
@@ -97,23 +97,23 @@
 
 ### 游戏主要逻辑的实现
 
-​		主逻辑很简单，先由Maze生成随机地图，根据地图初始化游戏中的墙(blocks)，LocalController管理一个多态对象列表，设置定时任务，每隔一定时间将列表中的所有对象移动到下一个位置。这个间隔越短对象移动越快(当然也和移动步长有关)。稍微复杂一点的地方是碰撞检测，炮弹与墙和坦克的碰撞，计算反弹，以及坦克与墙的碰撞等
+主逻辑很简单，先由Maze生成随机地图，根据地图初始化游戏中的墙(blocks)，LocalController管理一个多态对象列表，设置定时任务，每隔一定时间将列表中的所有对象移动到下一个位置。这个间隔越短对象移动越快(当然也和移动步长有关)。稍微复杂一点的地方是碰撞检测，炮弹与墙和坦克的碰撞，计算反弹，以及坦克与墙的碰撞等
 
 ​		几何图形的碰撞判断都在Math.cc中实现
 
 - **炮弹与墙的碰撞检测和反弹计算**
 
-  ​	其实游戏中的墙是由一根根固定长度和宽度的Block组合而成，所以炮弹与墙碰撞可以简化为圆形和矩形的重叠判断
+  其实游戏中的墙是由一根根固定长度和宽度的Block组合而成，所以炮弹与墙碰撞可以简化为圆形和矩形的重叠判断
 
 ![p1](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p1.png)
 
-​		图中v1, v2是矩形两个方向的单位向量，当然不要求矩形是水平或者垂直，只是因为游戏中所有Block都是横平竖直的。计算v在两个方向向量上的投影长度，当v在v2上投影长度小于W/2 + r，在v1上投影小于H/2 + r，且矩形中心与圆形中心距离小于R + r时，一定会发生重叠。
+图中v1, v2是矩形两个方向的单位向量，当然不要求矩形是水平或者垂直，只是因为游戏中所有Block都是横平竖直的。计算v在两个方向向量上的投影长度，当v在v2上投影长度小于W/2 + r，在v1上投影小于H/2 + r，且矩形中心与圆形中心距离小于R + r时，一定会发生重叠。
 
-​		那么怎么计算反弹方向呢？我用到一点包围盒的思想，将矩形外围看作有一个由四条线段b1, b2, b3, b4组成的包围盒, 线段与矩形外围的距离是炮弹的半径。
+那么怎么计算反弹方向呢？我用到一点包围盒的思想，将矩形外围看作有一个由四条线段b1, b2, b3, b4组成的包围盒, 线段与矩形外围的距离是炮弹的半径。
 
 ![p2](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p2.png)
 
-​		在某一次碰撞检测中，可以得到一颗Shell当前的位置和下一步的位置，这两个位置的中心会构成一条线段，将这条线段依次与包围盒的4个边求交点，有交点的那条包围盒线段就是Shell下一步将会碰到的矩形边，根据这条边是水平还是竖直，就可以得到反弹后的方向了。
+在某一次碰撞检测中，可以得到一颗Shell当前的位置和下一步的位置，这两个位置的中心会构成一条线段，将这条线段依次与包围盒的4个边求交点，有交点的那条包围盒线段就是Shell下一步将会碰到的矩形边，根据这条边是水平还是竖直，就可以得到反弹后的方向了。
 
 - **坦克与墙的碰撞检测**
 
@@ -138,12 +138,58 @@
 
 ### 关于人机
 
-​		人机是最有趣的部分了。它的逻辑分为危险躲避，接近敌人，瞄准攻击三部分。AgentSmith.cc中的代码负责作出躲避、接近、攻击的最优决策。但是从决策到对象真正移动之间还需要一个执行者，就是smithAI下的各种Strategy了，DodgeStrategy是躲避决策执行者，ContactStrategy是接近决策执行者，AttackStrategy是攻击决策执行者，决策以不同的形式保存在strategy中。
+人机是最有趣的部分了。它的逻辑分为危险躲避，接近敌人，瞄准攻击三部分。AgentSmith.cc中的代码负责作出躲避、接近、攻击的最优决策。但是从决策到对象真正移动之间还需要一个执行者，就是smithAI下的各种Strategy了，DodgeStrategy是躲避决策执行者，ContactStrategy是接近决策执行者，AttackStrategy是攻击决策执行者，决策以不同的形式保存在strategy中。
 
-​		对于DodgeStrategy, 一次完整的躲避决策由一个命令队列表示，比如
+对于DodgeStrategy, 一次完整的躲避决策由一个命令队列表示，比如
 
 ​											{ROTATE_CW, 3}, {MOVE_FORWARD, 15}
 
-表示先顺时针旋转三个步长，再前进15个步长。AgentSmith只负责生成这些命令，由DodgeStrategy负责在正确的时间改变坦克的移动状态
+表示先顺时针旋转三个步长，再前进15个步长。AgentSmith只负责生成这些命令，由DodgeStrategy负责在正确的时间改变坦克的移动状态，也就是执行命令
 
-​		ContactStrategy和AttackStrategy也类似，只不过一个存的是A*算法生成的路径点，一个存的是瞄准角度而已。总之AgentSmith和Strategy的关系就类似于高级指挥官与基层军官的关系。
+ContactStrategy和AttackStrategy也类似，只不过一个存的是A*算法生成的路径点，一个存的是瞄准角度而已。总之AgentSmith和Strategy的关系就类似于高级指挥官与基层军官的关系。
+
+- **Smith的躲避决策算法**
+
+  - **威胁检测**
+
+    Smith会定期对距离自己一定范围之内炮弹进行弹道预测，因为炮弹会反弹，需要将弹道分成一段一段的结构考虑。定义"弹道段"结构BallisticSegment
+
+    ```c++
+     struct BallisticSegment
+     {
+         int shellId; //炮弹的id
+         int seq;		//段序号，表示当前段是整条弹道中的第几段
+         KeyPoint start; //起点坐标
+         KeyPoint end; //终点坐标
+         util::Vec center;
+         double angle; //炮弹在这段弹道上的移动方向
+         double length; //这段长度
+         double distanceToTarget; //段的起点与smith的距离，这个值决定躲避的优先级
+         
+         BallisticSegment(int id, int seq, KeyPoint s, KeyPoint e, double len, double a, double dis):
+         	shellId(id), seq(seq), start(std::move(s)), end(std::move(e)),
+         	length(len), angle(a), distanceToTarget(dis)
+             {center = util::Vec((start.second.x() + end.second.x()) / 2,
+                                 (start.second.y() + end.second.y()) / 2);}
+         
+         static BallisticSegment invalid(){return {-1, -1, KeyPoint(), KeyPoint(), 0, 0, 0};}
+         
+         bool isValid() const {return shellId != -1;}
+     };
+    ```
+
+    ```c++
+    typedef std::vector<BallisticSegment> Ballistic; //一条完整弹道
+    typedef std::unordered_map<int, Ballistic> Ballistics; // 炮弹id -> 弹道
+    ```
+
+    如何判断某条“弹道段”对自己有威胁呢？可以将一条BallisticSegment视作一个宽度为炮弹直径的长方形，如果它与smith有重叠，那smith就处于这颗炮弹的“炮线”上，这个段将会被放入威胁列表中。
+
+    最后smith会选择躲避起始点距离自己最近的那个段，因为这颗炮弹应该是最早到达的。
+
+    下边这个例子中，两条蓝色段属于一条弹道，两条红色段属于另一条弹道。浅蓝色和深红色的段是有威胁段，由于红色段距离近，所以深红色段是当前要躲避的段。
+
+    ![p4](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p4.png)
+
+  - **决策生成**
+
