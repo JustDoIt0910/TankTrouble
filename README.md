@@ -107,5 +107,29 @@
 
 ![p1](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p1.png)
 
-​		图中v1, v2是矩形两个方向的单位向量，当然不要求矩形是水平或者垂直，只是因为游戏中所有Block都是横平竖直的。计算v在两个方向向量上的投影长度，当v在v2上投影长度小于W/2，在v1上投影小于H/2，且矩形中心与圆形中心距离小于R + r时，一定会发生重叠。
+​		图中v1, v2是矩形两个方向的单位向量，当然不要求矩形是水平或者垂直，只是因为游戏中所有Block都是横平竖直的。计算v在两个方向向量上的投影长度，当v在v2上投影长度小于W/2 + r，在v1上投影小于H/2 + r，且矩形中心与圆形中心距离小于R + r时，一定会发生重叠。
 
+​		那么怎么计算反弹方向呢？我用到一点包围盒的思想，将矩形外围看作有一个由四条线段b1, b2, b3, b4组成的包围盒, 线段与矩形外围的距离是炮弹的半径。
+
+![p2](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p2.png)
+
+​		在某一次碰撞检测中，可以得到一颗Shell当前的位置和下一步的位置，这两个位置的中心会构成一条线段，将这条线段依次与包围盒的4个边求交点，有交点的那条包围盒线段就是Shell下一步将会碰到的矩形边，根据这条边是水平还是竖直，就可以得到反弹后的方向了。
+
+- **坦克与墙的碰撞检测**
+
+  可以简化为矩形与矩形的重叠检测。这里用到的是投影法。关于投影法判断矩形重叠，这篇文章讲的比较清楚
+
+  [投影法判断旋转矩形重叠](https://blog.csdn.net/tom_221x/article/details/38457757)
+
+- **一点优化措施**
+
+  如果每个对象的每一次移动，都要与地图中所有Block进行碰撞检测，那未免有些蠢，其实一个对象在位置和运动方向确定的情况下，只有一小部分墙壁是可能发生碰撞的，即需要判断的。为此我将地图划分为许多单元格，如图
+
+  ![p3](https://github.com/JustDoIt0910/MarkDownPictures/blob/main/TankTrouble/p3.png)
+
+  这种情况下只需要判断左上角四个Block就好了。所以可以维护两个可能碰撞表，记录在某个格子，向某个方向运动时的可能碰撞列表(Tank 没有方向这一维，因为它几何形状比较不规则)，在生成地图后，初始化blocks时打表。
+
+  ```c++
+  std::vector<int> shellPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
+  std::vector<int> tankPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
+  ```
