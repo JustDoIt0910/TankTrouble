@@ -5,6 +5,20 @@
 [TankTroubleServer](https://github.com/JustDoIt0910/TankTroubleServer)
 
 
+**项目依赖gtkmm-3.0，如果没有的话需要先安装gtkmm**
+```bash
+apt-get install libgtkmm-3.0-dev
+```
+**安装**
+```bash
+git clone https://github.com/JustDoIt0910/TankTrouble.git
+cd TankTrouble
+git submodule update --init --recursive
+mkdir build && cd build
+cmake ..
+make
+./TankTrouble
+```
 
 **入口可以选择玩单机还是联网**
 
