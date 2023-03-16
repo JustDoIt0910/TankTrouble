@@ -89,7 +89,7 @@
 
    - 符合线程的单一职责原则
    - gui线程中不应该执行相对耗时的计算，单机模式中人机的计算量还是比较大的，都塞进gui线程中或许会降低界面响应，网络模式更不用说了，gui线程处理网络通信肯定是不合适的。
-   - 可以让view和controller完全解耦，view层不需要知道，也不应该知道当前是LocalController还是OnlineController在向它提供数据，它的职责仅仅是拿到数据，绘制，有键盘事件。向controller报告，view层的代码不需要为两不同Controller作修改。
+   - 可以让view和controller完全解耦，view层不需要知道，也不应该知道当前是LocalController还是OnlineController在向它提供数据，它的职责仅仅是拿到数据，绘制，有键盘事件。向controller报告，view层的代码不需要为不同Controller作修改。
 
    所以LocalController和OnlineController都继承Controller，对外暴露统一的接口。区别在于游戏对象是自己管理还是从服务器拿的而已。
 
@@ -133,3 +133,17 @@
   std::vector<int> shellPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER][8];
   std::vector<int> tankPossibleCollisionBlocks[HORIZON_GRID_NUMBER][VERTICAL_GRID_NUMBER];
   ```
+
+
+
+### 关于人机
+
+​		人机是最有趣的部分了。它的逻辑分为危险躲避，接近敌人，瞄准攻击三部分。AgentSmith.cc中的代码负责作出躲避、接近、攻击的最优决策。但是从决策到对象真正移动之间还需要一个执行者，就是smithAI下的各种Strategy了，DodgeStrategy是躲避决策执行者，ContactStrategy是接近决策执行者，AttackStrategy是攻击决策执行者，决策以不同的形式保存在strategy中。
+
+​		对于DodgeStrategy, 一次完整的躲避决策由一个命令队列表示，比如
+
+​											{ROTATE_CW, 3}, {MOVE_FORWARD, 15}
+
+表示先顺时针旋转三个步长，再前进15个步长。AgentSmith只负责生成这些命令，由DodgeStrategy负责在正确的时间改变坦克的移动状态
+
+​		ContactStrategy和AttackStrategy也类似，只不过一个存的是A*算法生成的路径点，一个存的是瞄准角度而已。总之AgentSmith和Strategy的关系就类似于高级指挥官与基层军官的关系。
