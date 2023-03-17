@@ -9,7 +9,7 @@
 ```bash
 apt-get install libgtkmm-3.0-dev
 ```
-**安装**
+**编译**
 ```bash
 git clone https://github.com/JustDoIt0910/TankTrouble.git
 cd TankTrouble
